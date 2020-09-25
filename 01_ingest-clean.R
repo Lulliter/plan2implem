@@ -1,12 +1,41 @@
+
+# What? ---------------------------------------------------------------------------------------
+# ESIF (European Structural and Investment Funds) 2014-2020
+# 1. ESIF 2014-2020 Finance Implementation  - https://cohesiondata.ec.europa.eu/resource/99js-gm52.json
+
 # Pckgs ---------------------------------------------------------------------------------------
 if (!require("pacman")) {
   install.packages("pacman")
 }
 library(pacman) # for loading packages
 p_load(
-  tidyverse, readxl, writexl, here, lubridate, janitor,
-  ggmap, ggrepel, lazyeval, magrittr
+  tidyverse, here,
+  # readxl, writexl, lubridate, janitor,
+  # ggmap, ggrepel, lazyeval, magrittr,
+  rjson, jsonify, httr, jsonlite, xml2,  rvest,
+  RSocrata # API cohesiondata.ec
 )
+
+
+# 1.a Ingest from downloaded (csv)----------------------------------------------------------------------------
+library(readr)
+ESIF_2014_2020_csv <- read_csv("rawdata/ESIF_2014-2020_Finance_Implementation_Details.csv")
+
+
+# 1.b Ingest from site (json) ---------------------------------------------------------------------
+# In my .Rprofile I have
+# Sys.setenv("SG_API"="SG.5tX6d...._4cKPs")
+Cohesion_API <- Sys.getenv("Cohesion")
+Cohesion_token <- Sys.getenv("Cohesion_token")
+
+# library("RSocrata")
+ESIF_2014_2020_json <- read.socrata(
+    "https://cohesiondata.ec.europa.eu/resource/99js-gm52.json"#,
+    # app_token = Cohesion_token,
+    # email     = "lmmm76@georgetown.edu",
+    # password  = "!cohesion2020"
+)
+
 
 
 # Loading -------------------------------------------------------------------------------------

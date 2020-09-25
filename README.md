@@ -1,3 +1,5 @@
+> _(work in progress)_
+
 # Project Title
 
 "Xche in Italia non riusciamo a realizzare quello che dobbiamo pianificato & gia finanziato?"
@@ -39,7 +41,13 @@ Below are the sources of datasets, R code chunks, and other interesting articles
 + [EU cohesion structural funds](https://cohesiondata.ec.europa.eu/stories/s/Information-maps-tracking-progress-in-investment-a/wjiv-jyr9m)
 + [Opencoesione](https://opencoesione.gov.it/it/nature/infrastrutture/)
 
-
+The European structural and investment funds are:
+1) **European regional development fund (ERDF)** – promotes balanced development in the different regions of the EU.
+2) **European social fund (ESF)** - supports employment-related projects throughout Europe and invests in Europe’s human capital – its workers, its young people and all those seeking a job.
+3) **Cohesion fund (CF)** – funds transport and environment projects in countries where the gross national income (GNI) per inhabitant is less than 90% of the EU average. In 2014-20, these are Bulgaria, Croatia, Cyprus, the Czech Republic, Estonia, Greece, Hungary, Latvia, Lithuania, Malta, Poland, Portugal, Romania, Slovakia and Slovenia.
+4) **European agricultural fund for rural development (EAFRD)** – focuses on resolving the particular challenges facing EU's rural areas.
+5) **European maritime and fisheries fund (EMFF)** – helps fishermen to adopt sustainable fishing practices and coastal communities to diversify their economies, improving quality of life along European coasts.
+European maritime and fisheries fund (EMFF)
 
 ##### Reference
 1. Sabino Cassese "troppa politica (e schieramenti politici) e troppo poca amministrazione (see _Il buon governo. L'età dei doveri_ )
