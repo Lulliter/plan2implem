@@ -18,25 +18,44 @@ p_load(
 
 
 # 1.a Ingest from downloaded (csv)----------------------------------------------------------------------------
-library(readr)
-ESIF_2014_2020_csv <- read_csv("rawdata/ESIF_2014-2020_Finance_Implementation_Details.csv")
+# library(readr)
+# ESIF_2014_2020_csv <- read_csv("rawdata/ESIF_2014-2020_Finance_Implementation_Details.csv")
 
 
-# 1.b Ingest from site (json) ---------------------------------------------------------------------
+# 1.b Ingest from site (json) using RSocrata ---------------------------------------------------------------------
 # In my .Rprofile I have
 # Sys.setenv("SG_API"="SG.5tX6d...._4cKPs")
 Cohesion_API <- Sys.getenv("Cohesion")
 Cohesion_token <- Sys.getenv("Cohesion_token")
-
 # library("RSocrata")
-ESIF_2014_2020_json <- read.socrata(
+
+
+# 1) ESIF 2014-2020 Finance Implementation Details
+# https://dev.socrata.com/foundry/cohesiondata.ec.europa.eu/99js-gm52
+# This data set provides time series information on the financial implementation on the ground of the 530+ ESI Funded programmes. The data is cumulative, i.e. 2016 values included the finances implemented for 2015. Therefore the value for different years MUST NOT BE AGGREGATED
+
+ESIF_2014_20 <- read.socrata(
     "https://cohesiondata.ec.europa.eu/resource/99js-gm52.json"#,
     # app_token = Cohesion_token,
     # email     = "lmmm76@georgetown.edu",
     # password  = "!cohesion2020"
 )
 
+# 2) ESIF 2014-2020 categorisation ERDF-ESF-CF planned vs implemented
+# https://dev.socrata.com/foundry/cohesiondata.ec.europa.eu/3kkx-ekfq
+# This file contains categorisation data from the ERDF/ESF/Cohesion Fund programmes and in particular it compares PLANNED AMOUNTS TO IMPLEMENTED INVESTMENTS.
+# This dataset currently contains data to end-2016 and end- 2017. As the data is cumulative the **ANNUAL VALUES SHOULD NOT BE AGGREGATED *** but may be compared to see progress.
 
+ESIF_2014_20_plan2imp <- read.socrata(
+  "https://cohesiondata.ec.europa.eu/resource/3kkx-ekfq.json"#,
+  # app_token = Cohesion_token,
+  # email     = "lmmm76@georgetown.edu",
+  # password  = "!cohesion2020"
+)
+
+## 3) lookup categorization --------------------------------------------
+# https://dev.socrata.com/foundry/cohesiondata.ec.europa.eu/xns4-t7ym
+ESIF_2014_20_categ <- read.socrata("https://cohesiondata.ec.europa.eu/resource/xns4-t7ym.json")
 
 # Loading -------------------------------------------------------------------------------------
 from_dir <- here::here("rawdata/")
