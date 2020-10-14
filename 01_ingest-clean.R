@@ -17,20 +17,20 @@ p_load(
 )
 
 
-# 1.a Ingest from downloaded (csv)----------------------------------------------------------------------------
+# Ingest from downloaded (csv)----------------------------------------------------------------------------
 # library(readr)
 # ESIF_2014_2020_csv <- read_csv("rawdata/ESIF_2014-2020_Finance_Implementation_Details.csv")
 
 
-# 1.b Ingest from site (json) using RSocrata ---------------------------------------------------------------------
+# Ingest from site (json) using RSocrata ---------------------------------------------------------------------
 # In my .Rprofile I have
 # Sys.setenv("SG_API"="SG.5tX6d...._4cKPs")
-Cohesion_API <- Sys.getenv("Cohesion")
+Cohesion_API <- Sys.getenv("Cohesion_API")
 Cohesion_token <- Sys.getenv("Cohesion_token")
 # library("RSocrata")
 
 
-# 1) ESIF 2014-2020 Finance Implementation Details
+### 1) ESIF 2014-2020 Finance Implementation Details --------------------------------------------
 # https://dev.socrata.com/foundry/cohesiondata.ec.europa.eu/99js-gm52
 # This data set provides time series information on the financial implementation on the ground of the 530+ ESI Funded programmes. The data is cumulative, i.e. 2016 values included the finances implemented for 2015. Therefore the value for different years MUST NOT BE AGGREGATED
 
@@ -41,7 +41,7 @@ ESIF_2014_20 <- read.socrata(
     # password  = "!cohesion2020"
 )
 
-# 2) ESIF 2014-2020 categorisation ERDF-ESF-CF planned vs implemented
+# 2) ESIF 2014-2020 categorisation ERDF-ESF-CF planned vs implemented --------------------------------------------
 # https://dev.socrata.com/foundry/cohesiondata.ec.europa.eu/3kkx-ekfq
 # This file contains categorisation data from the ERDF/ESF/Cohesion Fund programmes and in particular it compares PLANNED AMOUNTS TO IMPLEMENTED INVESTMENTS.
 # This dataset currently contains data to end-2016 and end- 2017. As the data is cumulative the **ANNUAL VALUES SHOULD NOT BE AGGREGATED *** but may be compared to see progress.
@@ -57,203 +57,93 @@ ESIF_2014_20_plan2imp <- read.socrata(
 # https://dev.socrata.com/foundry/cohesiondata.ec.europa.eu/xns4-t7ym
 ESIF_2014_20_categ <- read.socrata("https://cohesiondata.ec.europa.eu/resource/xns4-t7ym.json")
 
-# Loading -------------------------------------------------------------------------------------
-from_dir <- here::here("rawdata/")
+# Change Datatypes ---------------------------------------------------------
 
-from_dir %>%
-  list.files() %>%
-  .[str_detect(., "Data_FY")] -> files_xls # selecting my ones
-files_xls
+# 1 ESIF_2014_20 (char -> number)
+tibble::glimpse(ESIF_2014_20)
 
-# Load everything into the Global Environment
-files_xls %>%
-  purrr::map(function(file_name) { # iterate through each file name
-    assign(
-      x = str_remove(file_name, ".xlsx"), # Remove file extension ".csv"
-      value = read_xlsx(paste0(from_dir, file_name)),
-      envir = .GlobalEnv
-    )
-  })
+#=== NUMERIC
+Num <- c("eu_amount",
+         "total_amount",
+         #"year",
+         "eu_co_financing",
+         "total_eligible_cost",
+         "total_eligible_expenditure")
+ESIF_2014_20[,Num] <- as.numeric(unlist(ESIF_2014_20[,Num]))
+ESIF_2014_20[ ,Num][is.na(ESIF_2014_20[ ,Num])]  <- 0
+
+ESIF_2014_20[,"year"] <-  as.integer(unlist(ESIF_2014_20[,"year"]))
+tibble::glimpse(ESIF_2014_20)
+
+
+#  2 ESIF_2014_20_categ (char -> number)
+tibble::glimpse(ESIF_2014_20_categ)
+Num <- c("intervention_field_code",
+          "climate_weighting_",
+         "biodiversity_weighting_" )
+ESIF_2014_20_categ[,Num] <- as.numeric(unlist(ESIF_2014_20_categ[,Num]))
+ESIF_2014_20_categ[ ,Num][is.na(ESIF_2014_20_categ[ ,Num])]  <- 0
+
+#  3 ESIF_2014_20_categ (char -> number)
+tibble::glimpse(ESIF_2014_20_plan2imp)
+
+dput(names(ESIF_2014_20_plan2imp))
+Num <-  c("eu_cofinancing_rate",
+          "planned_total_amount_notional", "planned_eu_amount",
+          "total_eligible_costs_selected_fin_data",
+          "eu_eligible_costs_selected_fin_data_notional",
+          "public_eligible_costs_fin_data",
+          "total_elig_expenditure_declared_fin_data",
+          "eu_elig_expenditure_declared_fin_data_notional",
+          "planned_eu_amount_climate_change", # date
+          "eu_eligible_costs_notional_climate_change",
+          "eu_eligible_expenditure_notional_climate_change",
+          "planned_eu_amount_biodiversity",
+          "eu_eligible_costs_notional_biodiversity",
+          "eu_eligible_expenditure_notional_biodiversity",
+          "planned_eu_amount_clean_air",
+          "eu_eligible_costs_notional_clean_air",
+          "eu_eligible_expenditure_notional_clean_air",
+          "number_of_operations" )
+
+ESIF_2014_20_plan2imp[,Num] <- as.numeric(unlist(ESIF_2014_20_plan2imp[,Num]))
+ESIF_2014_20_plan2imp[ ,Num][is.na(ESIF_2014_20_plan2imp[ ,Num])]  <- 0
+
+ESIF_2014_20_plan2imp[,"year"] <-  as.integer(unlist(ESIF_2014_20_plan2imp[,"year"]))
+tibble::glimpse(ESIF_2014_20_plan2imp)
+
+
+# STOP - I'm HERE  --------------------------------------------------------
+
+
+# # Loading files -------------------------------------------------------------------------------------
+# from_dir <- here::here("rawdata/")
+#
+# from_dir %>%
+#   list.files() %>%
+#   .[str_detect(., "Data_FY")] -> files_xls # selecting my ones
+# files_xls
+#
+# # Load everything into the Global Environment
+# files_xls %>%
+#   purrr::map(function(file_name) { # iterate through each file name
+#     assign(
+#       x = str_remove(file_name, ".xlsx"), # Remove file extension ".csv"
+#       value = read_xlsx(paste0(from_dir, file_name)),
+#       envir = .GlobalEnv
+#     )
+#   })
 
 
 # Checking variables across FY ----------------------------------------------------------------
-names(Data_FY15)
-names(Data_FY16)
+names(ESIF_2014_20)
+names(ESIF_2014_20_categ)
 names(Data_FY17)
-names(Data_FY18)
-glimpse(Data_FY19)
+names(ESIF_2014_20_plan2imp)
+
+(ESIF_2014_20$fund)
 
 
-FY19 <- Data_FY19 %>%
-  dplyr::select(
-    CASE_NUMBER, COUNTRY_OF_CITIZENSHIP,
-    DECISION_DATE, CASE_RECEIVED_DATE, CASE_STATUS,
-    FW_INFO_BIRTH_COUNTRY, CLASS_OF_ADMISSION, # immigration visa  held at the time permanent labor certification application was submitted
-    FOREIGN_WORKER_INFO_EDUCATION, FOREIGN_WORKER_INFO_INST,
-    # REFILE, ORIG_FILE_DATE, ORIG_CASE_NO ,
-    EMPLOYER_NAME, EMPLOYER_CITY, EMPLOYER_STATE, EMPLOYER_COUNTRY, EMPLOYER_POSTAL_CODE, EMPLOYER_NUM_EMPLOYEES, EMPLOYER_YR_ESTAB,
-    PW_SOC_CODE, PW_SOC_TITLE, PW_LEVEL_9089, PW_AMOUNT_9089, PW_UNIT_OF_PAY_9089,
-    JOB_INFO_JOB_TITLE, EMPLOYER_DECL_INFO_TITLE, NAICS_US_CODE, NAICS_US_TITLE, # PW_JOB_TITLE_9089,
-    FOREIGN_WORKER_INFO_CITY, FOREIGN_WORKER_INFO_STATE, FW_INFO_POSTAL_CODE # now in the US ??
-  )
-
-
-
-FY18 <- Data_FY18 %>%
-  dplyr::select(
-    CASE_NUMBER, COUNTRY_OF_CITIZENSHIP,
-    DECISION_DATE, CASE_RECEIVED_DATE, CASE_STATUS,
-    FW_INFO_BIRTH_COUNTRY, CLASS_OF_ADMISSION, # immigration visa  held at the time permanent labor certification application was submitted
-    FOREIGN_WORKER_INFO_EDUCATION, FOREIGN_WORKER_INFO_INST,
-    # REFILE, ORIG_FILE_DATE, ORIG_CASE_NO ,
-    EMPLOYER_NAME, EMPLOYER_CITY, EMPLOYER_STATE, EMPLOYER_COUNTRY, EMPLOYER_POSTAL_CODE, EMPLOYER_NUM_EMPLOYEES, EMPLOYER_YR_ESTAB,
-    PW_SOC_CODE, PW_SOC_TITLE, PW_LEVEL_9089, PW_AMOUNT_9089, PW_UNIT_OF_PAY_9089,
-    JOB_INFO_JOB_TITLE, EMPLOYER_DECL_INFO_TITLE, NAICS_US_CODE, NAICS_US_TITLE, # PW_JOB_TITLE_9089,
-    FOREIGN_WORKER_INFO_CITY, FOREIGN_WORKER_INFO_STATE, FW_INFO_POSTAL_CODE # now in the US ??
-  )
-
-FY17 <- Data_FY17 %>%
-  dplyr::select(
-    CASE_NUMBER, COUNTRY_OF_CITIZENSHIP,
-    DECISION_DATE, CASE_RECEIVED_DATE, CASE_STATUS,
-    FW_INFO_BIRTH_COUNTRY, CLASS_OF_ADMISSION, # immigration visa  held at the time permanent labor certification application was submitted
-    FOREIGN_WORKER_INFO_EDUCATION, FOREIGN_WORKER_INFO_INST,
-    # REFILE, ORIG_FILE_DATE, ORIG_CASE_NO ,
-    EMPLOYER_NAME, EMPLOYER_CITY, EMPLOYER_STATE, EMPLOYER_COUNTRY, EMPLOYER_POSTAL_CODE, EMPLOYER_NUM_EMPLOYEES, EMPLOYER_YR_ESTAB,
-    PW_SOC_CODE, PW_SOC_TITLE, PW_LEVEL_9089, PW_AMOUNT_9089, PW_UNIT_OF_PAY_9089,
-    JOB_INFO_JOB_TITLE, EMPLOYER_DECL_INFO_TITLE, NAICS_US_CODE, NAICS_US_TITLE, # PW_JOB_TITLE_9089,
-    FOREIGN_WORKER_INFO_CITY, FOREIGN_WORKER_INFO_STATE, FW_INFO_POSTAL_CODE # now in the US ??
-  )
-
-FY16 <- Data_FY16 %>%
-  dplyr::select(
-    CASE_NUMBER, COUNTRY_OF_CITIZENSHIP,
-    DECISION_DATE, CASE_RECEIVED_DATE, CASE_STATUS,
-    FW_INFO_BIRTH_COUNTRY, CLASS_OF_ADMISSION, # immigration visa  held at the time permanent labor certification application was submitted
-    FOREIGN_WORKER_INFO_EDUCATION, FOREIGN_WORKER_INFO_INST,
-    # REFILE, ORIG_FILE_DATE, ORIG_CASE_NO ,
-    EMPLOYER_NAME, EMPLOYER_CITY, EMPLOYER_STATE, EMPLOYER_COUNTRY, EMPLOYER_POSTAL_CODE, EMPLOYER_NUM_EMPLOYEES, EMPLOYER_YR_ESTAB,
-    PW_SOC_CODE, PW_SOC_TITLE, PW_LEVEL_9089, PW_AMOUNT_9089, PW_UNIT_OF_PAY_9089,
-    JOB_INFO_JOB_TITLE, EMPLOYER_DECL_INFO_TITLE, NAICS_US_CODE, NAICS_US_TITLE, # PW_JOB_TITLE_9089 = PW_Job_Title_9089, # change name
-    FOREIGN_WORKER_INFO_CITY, FOREIGN_WORKER_INFO_STATE, FW_INFO_POSTAL_CODE
-  ) # now in the US ??
-
-
-FY15 <- Data_FY15 %>%
-  dplyr::select(
-    CASE_NUMBER, COUNTRY_OF_CITIZENSHIP,
-    DECISION_DATE, CASE_RECEIVED_DATE, CASE_STATUS,
-    FW_INFO_BIRTH_COUNTRY, CLASS_OF_ADMISSION, # immigration visa  held at the time permanent labor certification application was submitted
-    FOREIGN_WORKER_INFO_EDUCATION, FOREIGN_WORKER_INFO_INST,
-    # REFILE, ORIG_FILE_DATE, ORIG_CASE_NO ,
-    EMPLOYER_NAME, EMPLOYER_CITY, EMPLOYER_STATE, EMPLOYER_COUNTRY, EMPLOYER_POSTAL_CODE, EMPLOYER_NUM_EMPLOYEES, EMPLOYER_YR_ESTAB,
-    PW_SOC_CODE, PW_SOC_TITLE, PW_LEVEL_9089, PW_AMOUNT_9089, PW_UNIT_OF_PAY_9089,
-    JOB_INFO_JOB_TITLE, EMPLOYER_DECL_INFO_TITLE, NAICS_US_CODE, NAICS_US_TITLE, # PW_JOB_TITLE_9089 = PW_Job_Title_9089,
-    FOREIGN_WORKER_INFO_CITY, FOREIGN_WORKER_INFO_STATE, FW_INFO_POSTAL_CODE
-  ) # now in the US ??
-FY17$PW_AMOUNT_9089 <- as.numeric(FY17$PW_AMOUNT_9089)
-FY18$PW_AMOUNT_9089 <- as.numeric(FY18$PW_AMOUNT_9089)
-
-
-# Append all 5 FY -----------------------------------------------------------------------------
-FY_15_19 <- bind_rows(FY15, FY16, FY17, FY18, FY19)
-str(FY_15_19) # 474,359 obs. of  28 variables:
-
-skimr::n_unique(FY_15_19$CASE_NUMBER)
-skimr::n_missing(FY_15_19$CASE_NUMBER)
-
-
-# Select Representative countries -------------------------------------------------------------
-table(FY_15_19$COUNTRY_OF_CITIZENSHIP)
-
-countries <- c(
-  "VENEZUELA", "SYRIA", "NORTH KOREA", "YEMEN", "LIBYA", "IRAN", "SOMALIA", # ban
-  "ISRAEL", "SAUDI ARABIA", "LEBANON", "PALESTINE",
-  "AUSTRIA", "LATVIA", "ITALY", "UNITED KINGDOM", "GERMANY", "POLAND", "DENMARK", "KAZAKHSTAN", "NORWAY",
-  "AUSTRALIA", "SOUTH KOREA", "VIETNAM", "BANGLADESH", "CHINA", "PHILIPPINES", "INDIA",
-  "BRAZIL", "CHILE", "MEXICO", "PARAGUAY", "BOLIVIA", "HONDURAS", "EL SALVADOR", "GUATEMALA",
-  "DOMINICAN REPUBLIC", "BAHAMAS", "TRINIDAD AND TOBAGO",
-  "SENEGAL", "NIGERIA", "ETHIOPIA", "KENYA", "BOTSWANA", "MALI", "MOZAMBIQUE", "SOUTH AFRICA", "ZIMBABWE",
-  "BERMUDA", "CANADA"
-)
-
-
-FY_15_19 <- FY_15_19 %>%
-  # dplyr::filter(FW_INFO_BIRTH_COUNTRY %in% countries) %>%
-  dplyr::rename(COUNTRY_OF_BIRTH = FW_INFO_BIRTH_COUNTRY) %>%
-  dplyr::mutate(REGION_BIRTH = case_when(
-    COUNTRY_OF_BIRTH %in% c(
-      "BURMA (MYANMAR)", "INDONESIA",
-      "NEW ZEALAND", "PAPUA NEW GUINEA",
-      "TAIWAN", "THAILAND",
-      "MACAU", "WESTERN SAMOA", "BRUNEI", "CAMBODIA", "FIJI", "HONG KONG", "JAPAN",
-      "KIRIBATI", "LAOS", "MALAYSIA", "MICRONESIA", "PALAU", "SAMOA", "SINGAPORE",
-      "NORTH KOREA", "VIETNAM", "PHILIPPINES", "AUSTRALIA", "SOUTH KOREA", "MONGOLIA",
-      "CHINA"
-    ) ~ "EastAsia",
-
-    COUNTRY_OF_BIRTH %in% c(
-      "BHUTAN", "SRI LANKA", "MALDIVES", "NEPAL", "PAKISTAN",
-      "AFGHANISTAN", "BANGLADESH", "INDIA"
-    ) ~ "SouthAsia",
-
-    COUNTRY_OF_BIRTH %in% c(
-      "MOLDOVA", "GEORGIA", "PORTUGAL", "ROMANIA", "ARMENIA", "BELARUS", "KYRGYZSTAN",
-      "NETHERLANDS", "RUSSIA", "SOVIET UNION", "SWEDEN", "SWITZERLAND", "ANDORRA",
-      "AZERBAIJAN", "BELGIUM", "BOSNIA AND HERZEGOVINA", "BULGARIA",
-      "CROATIA", "ESTONIA", "FINLAND", "FRANCE", "GIBRALTAR", "GREECE", "HUNGARY", "ICELAND",
-      "IRELAND", "KOSOVO", "MONACO", "MONTENEGRO", "MALTA", "SLOVAKIA", "SLOVENIA",
-      "SPAIN", "UZBEKISTAN", "TURKEY", "TURKMENISTAN",
-      "UKRAINE", "SERBIA", "SERBIA AND MONTENEGRO", "LITHUANIA", "LUXEMBOURG", "MACEDONIA",
-      "TAJIKISTAN", "YUGOSLAVIA", "ALBANIA", "AUSTRIA", "LATVIA", "ITALY",
-      "UNITED KINGDOM", "GERMANY", "POLAND", "CYPRUS", "CZECH REPUBLIC", "CZECHOSLOVAKIA",
-      "DENMARK", "KAZAKHSTAN", "NORWAY"
-    ) ~ "Europe & CentrAsia",
-
-    COUNTRY_OF_BIRTH %in% c(
-      "MONTSERRAT", "NETHERLANDS ANTILLES", "SINT MAARTEN", "ST VINCENT", "SURINAME", "NICARAGUA", "PANAMA",
-      "ANGUILLA", "BARBADOS", "BELIZE", "BRITISH VIRGIN ISLANDS",
-      "CAYMAN ISLANDS", "CUBA", "CURACAO", "DOMINICA", "GRENADA", "GUYANA", "HAITI", "JAMAICA", "PERU",
-      "SAINT VINCENT AND THE GRENADINES", "URUGUAY", "ANTIGUA AND BARBUDA", "ARGENTINA", "ARUBA",
-      "COLOMBIA", "COSTA RICA", "ECUADOR", "ST KITTS AND NEVIS", "ST LUCIA", "VENEZUELA",
-      "BRAZIL", "CHILE", "MEXICO", "PARAGUAY", "BOLIVIA",
-      "DOMINICAN REPUBLIC", "HONDURAS", "EL SALVADOR", "GUATEMALA", "BAHAMAS",
-      "TRINIDAD AND TOBAGO"
-    ) ~ "LatAm & Caribb",
-
-    COUNTRY_OF_BIRTH %in% c(
-      "EGYPT", "JORDAN", "KUWAIT", "PALESTINIAN TERRITORIES", "QATAR", "BAHRAIN",
-      "IRAQ", "MOROCCO", "OMAN", "UNITED ARAB EMIRATES", "TUNISIA", "ALGERIA", "ISRAEL",
-      "SYRIA", "YEMEN", "LIBYA", "IRAN", "SAUDI ARABIA",
-      "LEBANON", "PALESTINE"
-    ) ~ "MiddleEast & NorthAfr",
-
-    COUNTRY_OF_BIRTH %in% c(
-      "BENIN", "IVORY COAST", "MAURITIUS",
-      "LESOTHO", "LIBERIA", "MADAGASCAR", "MALAWI",
-      "MAURITANIA", "NAMIBIA", "NIGER", "REPUBLIC OF CONGO",
-      "RWANDA", "SAO TOME AND PRINCIPE", "SEYCHELLES", "SIERRA LEONE",
-      "SOUTH SUDAN", "ANGOLA", "BURKINA FASO", "BURUNDI",
-      "CAMEROON", "CAPE VERDE", "CHAD", "COTE d'IVOIRE",
-      "DEMOCRATIC REPUBLIC OF CONGO", "DJIBOUTI",
-      "EQUATORIAL GUINEA", "ERITREA", "GABON", "GAMBIA",
-      "GHANA", "GUINEA", "GUINEA-BISSAU", "SUDAN", "SWAZILAND", "TOGO", "UGANDA",
-      "TANZANIA", "ZAMBIA", "SOMALIA", "SENEGAL", "NIGERIA", "ETHIOPIA", "KENYA", "BOTSWANA",
-      "MALI", "MOZAMBIQUE", "SOUTH AFRICA", "ZIMBABWE"
-    ) ~ "Sub-Sahar Afr",
-
-    COUNTRY_OF_BIRTH %in% c("UNITED STATES OF AMERICA", "BERMUDA", "CANADA") ~ "NorthAmerica"
-  ))
-
-
-table(FY_15_19$COUNTRY_OF_BIRTH, useNA = "ifany")
-table(FY_15_19$REGION_BIRTH, useNA = "ifany")
-
-FY_15_19 <- FY_15_19 %>% filter(!is.na(COUNTRY_OF_BIRTH))
-
-recap <- FY_15_19 %>%
-  group_by(COUNTRY_OF_BIRTH) %>%
-  count()
 
 
 # Intervals encompassing whole process in 1 Admin

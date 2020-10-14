@@ -19,7 +19,7 @@ if [ $# -eq 1 ]
 fi
 # ... Commit Those changes.
 git commit -m "$msg"
-		# git commit -m "kable in Contacts"
+		# git commit -m "loaded 3 datasets"
 		# git commit -m " output in ./docs/"
 
 # Push source and build repos.

@@ -2,7 +2,7 @@
 
 # Project Title
 
-"Xche in Italia non riusciamo a realizzare quello che dobbiamo pianificato & gia finanziato?"
+"Xchè in Italia non riusciamo a realizzare quello che dobbiamo pianificato & gia finanziato?"
 
 ## Purpose 
  
@@ -17,6 +17,8 @@ European maritime and fisheries fund (EMFF)
 
 In the dataset, **ESIF** includes the 5 funds (ERDF, CF, ESF, EAFRD and EMFF).
 Here, I'll focus on the **European regional development fund (ERDF)** first ... 
+
+> [here](https://cohesiondata.ec.europa.eu/browse?category=2014+%2F+2020+Finances&limitTo=datasets) some more ESIF datasets
 
 ## Project Structure
 The analysis can be reproduced running in sequence the R scripts `01_*.R`:`04_*.R` which will generate the charts `gg_*.png` and clean data files `dat*.Rds`. 
