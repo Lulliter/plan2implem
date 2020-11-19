@@ -1,15 +1,16 @@
 
-# What? ---------------------------------------------------------------------------------------
+# What? ------------------------------------------------------------------------
 # ESIF (European Structural and Investment Funds) 2014-2020
 # 1. ESIF 2014-2020 Finance Implementation  - https://cohesiondata.ec.europa.eu/resource/99js-gm52.json
 
-# Pckgs ---------------------------------------------------------------------------------------
+# Pckgs ------------------------------------------------------------------------
 if (!require("pacman")) {
   install.packages("pacman")
 }
 library(pacman) # for loading packages
 p_load(
   tidyverse, here,
+  assertr,lubridate,
   # readxl, writexl, lubridate, janitor,
   # ggmap, ggrepel, lazyeval, magrittr,
   rjson, jsonify, httr, jsonlite, xml2,  rvest,
@@ -17,12 +18,12 @@ p_load(
 )
 
 
-# Ingest from downloaded (csv)----------------------------------------------------------------------------
+# Ingest from downloaded (csv)--------------------------------------------------
 # library(readr)
 # ESIF_2014_2020_csv <- read_csv("rawdata/ESIF_2014-2020_Finance_Implementation_Details.csv")
 
 
-# Ingest from site (json) using RSocrata ---------------------------------------------------------------------
+# Ingest from site (json) using RSocrata ---------------------------------------
 # In my .Rprofile I have
 # Sys.setenv("SG_API"="SG.5tX6d...._4cKPs")
 Cohesion_API <- Sys.getenv("Cohesion_API")
@@ -30,90 +31,167 @@ Cohesion_token <- Sys.getenv("Cohesion_token")
 # library("RSocrata")
 
 
-### 1) ESIF 2014-2020 Finance Implementation Details --------------------------------------------
+### 1) ESIF_2014_20 Finance Implementation Details --------------------------------------------
 # https://dev.socrata.com/foundry/cohesiondata.ec.europa.eu/99js-gm52
 # This data set provides time series information on the financial implementation on the ground of the 530+ ESI Funded programmes. The data is cumulative, i.e. 2016 values included the finances implemented for 2015. Therefore the value for different years MUST NOT BE AGGREGATED
 
+# d <- read.socrata("https://cohesiondata.ec.europa.eu/2014-2020-Finances/ESIF-2014-2020-Finance-Implementation-Details/99js-gm52")
+# str(d)
+
 ESIF_2014_20 <- read.socrata(
-    "https://cohesiondata.ec.europa.eu/resource/99js-gm52.json"#,
+   # "https://cohesiondata.ec.europa.eu/resource/99js-gm52.json"#, JSON restituisce datatype chr
+    "https://cohesiondata.ec.europa.eu/2014-2020-Finances/ESIF-2014-2020-Finance-Implementation-Details/99js-gm52"#,   just copy/paste the URL from address bar, RSocrata defaults to download from CSV
     # app_token = Cohesion_token,
     # email     = "lmmm76@georgetown.edu",
     # password  = "!cohesion2020"
 )
 
-# 2) ESIF 2014-2020 categorisation ERDF-ESF-CF planned vs implemented --------------------------------------------
+str(ESIF_2014_20)
+# 2) ESIF_2014_20_plan2imp ESIF 2014-2020 categorisation ERDF-ESF-CF planned vs implemented --------------------------------------------
 # https://dev.socrata.com/foundry/cohesiondata.ec.europa.eu/3kkx-ekfq
 # This file contains categorisation data from the ERDF/ESF/Cohesion Fund programmes and in particular it compares PLANNED AMOUNTS TO IMPLEMENTED INVESTMENTS.
 # This dataset currently contains data to end-2016 and end- 2017. As the data is cumulative the **ANNUAL VALUES SHOULD NOT BE AGGREGATED *** but may be compared to see progress.
 
 ESIF_2014_20_plan2imp <- read.socrata(
-  "https://cohesiondata.ec.europa.eu/resource/3kkx-ekfq.json"#,
+  # "https://cohesiondata.ec.europa.eu/resource/3kkx-ekfq.json"#, imprecise datatype
+  "https://cohesiondata.ec.europa.eu/2014-2020-Categorisation/ESIF-2014-2020-categorisation-ERDF-ESF-CF-planned-/3kkx-ekfq"#, better datatype
   # app_token = Cohesion_token,
   # email     = "lmmm76@georgetown.edu",
   # password  = "!cohesion2020"
 )
 
-## 3) lookup categorization --------------------------------------------
+## 3) ESIF_2014_20_categ lookup categorization --------------------------------------------
 # https://dev.socrata.com/foundry/cohesiondata.ec.europa.eu/xns4-t7ym
-ESIF_2014_20_categ <- read.socrata("https://cohesiondata.ec.europa.eu/resource/xns4-t7ym.json")
+ESIF_2014_20_categ <- read.socrata("https://cohesiondata.ec.europa.eu/2014-2020-Categorisation/ESIF-2014-2020-Categorisation-Crosscutting-Themes-/xns4-t7ym")
 
 # Change Datatypes ---------------------------------------------------------
+# now redundant
 
-# 1 ESIF_2014_20 (char -> number)
-tibble::glimpse(ESIF_2014_20)
+    # # 1 ESIF_2014_20 (char -> number)
+    # tibble::glimpse(ESIF_2014_20)
+    #
+    # #=== NUMERIC
+    # Num <- c("eu_amount",
+    #          "national_amount",
+    #          "total_amount",
+    #          #"year",
+    #          "eu_co_financing",
+    #          "total_eligible_cost",
+    #          "total_eligible_expenditure")
+    # ESIF_2014_20[,Num] <- as.numeric(unlist(ESIF_2014_20[,Num]))
+    # ESIF_2014_20[ ,Num][is.na(ESIF_2014_20[ ,Num])]  <- 0
+    #
+    # ESIF_2014_20[,"year"] <-  as.integer(unlist(ESIF_2014_20[,"year"]))
+    # tibble::glimpse(ESIF_2014_20)
+    #
+    #
+    # #  2 ESIF_2014_20_categ (char -> number)
+    # tibble::glimpse(ESIF_2014_20_categ)
+    # Num <- c("intervention_field_code",
+    #           "climate_weighting_",
+    #          "biodiversity_weighting_" )
+    # ESIF_2014_20_categ[,Num] <- as.numeric(unlist(ESIF_2014_20_categ[,Num]))
+    # ESIF_2014_20_categ[ ,Num][is.na(ESIF_2014_20_categ[ ,Num])]  <- 0
+    #
+    # #  3 ESIF_2014_20_categ (char -> number)
+    # tibble::glimpse(ESIF_2014_20_plan2imp)
+    #
+    # dput(names(ESIF_2014_20_plan2imp))
+    # Num <-  c("eu_cofinancing_rate",
+    #           "planned_total_amount_notional", "planned_eu_amount",
+    #           "total_eligible_costs_selected_fin_data",
+    #           "eu_eligible_costs_selected_fin_data_notional",
+    #           "public_eligible_costs_fin_data",
+    #           "total_elig_expenditure_declared_fin_data",
+    #           "eu_elig_expenditure_declared_fin_data_notional",
+    #           "planned_eu_amount_climate_change", # date
+    #           "eu_eligible_costs_notional_climate_change",
+    #           "eu_eligible_expenditure_notional_climate_change",
+    #           "planned_eu_amount_biodiversity",
+    #           "eu_eligible_costs_notional_biodiversity",
+    #           "eu_eligible_expenditure_notional_biodiversity",
+    #           "planned_eu_amount_clean_air",
+    #           "eu_eligible_costs_notional_clean_air",
+    #           "eu_eligible_expenditure_notional_clean_air",
+    #           "number_of_operations" )
+    #
+    # ESIF_2014_20_plan2imp[,Num] <- as.numeric(unlist(ESIF_2014_20_plan2imp[,Num]))
+    # ESIF_2014_20_plan2imp[ ,Num][is.na(ESIF_2014_20_plan2imp[ ,Num])]  <- 0
+    #
+    # ESIF_2014_20_plan2imp[,"year"] <-  as.integer(unlist(ESIF_2014_20_plan2imp[,"year"]))
+    # tibble::glimpse(ESIF_2014_20_plan2imp)
+    #
 
-#=== NUMERIC
-Num <- c("eu_amount",
-         "total_amount",
-         #"year",
-         "eu_co_financing",
-         "total_eligible_cost",
-         "total_eligible_expenditure")
-ESIF_2014_20[,Num] <- as.numeric(unlist(ESIF_2014_20[,Num]))
-ESIF_2014_20[ ,Num][is.na(ESIF_2014_20[ ,Num])]  <- 0
+ESIF_2014_20$reference_date <- lubridate::as_date(ESIF_2014_20$reference_date)
 
-ESIF_2014_20[,"year"] <-  as.integer(unlist(ESIF_2014_20[,"year"]))
-tibble::glimpse(ESIF_2014_20)
+# Select interesting stuff -----------------------------------------------------
 
+### 1) "ESIF_2014_20" 99js-gm52 Finance Implementation Details -------------------
+# Each row compares a planned allocation to a detailed category (by country, programme, fund, priority axis, category of region) to the reported value of selected projects (operations) and to the expenditure reported by those projects.-> different years MUST NOT BE AGGREGATED
+glimpse(ESIF_2014_20)
 
-#  2 ESIF_2014_20_categ (char -> number)
-tibble::glimpse(ESIF_2014_20_categ)
-Num <- c("intervention_field_code",
-          "climate_weighting_",
-         "biodiversity_weighting_" )
-ESIF_2014_20_categ[,Num] <- as.numeric(unlist(ESIF_2014_20_categ[,Num]))
-ESIF_2014_20_categ[ ,Num][is.na(ESIF_2014_20_categ[ ,Num])]  <- 0
+# select only ERDF  - bc I'm interested in infrastructure (ESF is for social issue)
+ERDF_2014_20  <- ESIF_2014_20 %>%
+  filter(., fund == 'ERDF') # n 12678
 
-#  3 ESIF_2014_20_categ (char -> number)
-tibble::glimpse(ESIF_2014_20_plan2imp)
+# count unique
+skimr::skim(ERDF_2014_20)
+table(ERDF_2014_20$category_of_region, useNA = "ifany")
 
-dput(names(ESIF_2014_20_plan2imp))
-Num <-  c("eu_cofinancing_rate",
-          "planned_total_amount_notional", "planned_eu_amount",
-          "total_eligible_costs_selected_fin_data",
-          "eu_eligible_costs_selected_fin_data_notional",
-          "public_eligible_costs_fin_data",
-          "total_elig_expenditure_declared_fin_data",
-          "eu_elig_expenditure_declared_fin_data_notional",
-          "planned_eu_amount_climate_change", # date
-          "eu_eligible_costs_notional_climate_change",
-          "eu_eligible_expenditure_notional_climate_change",
-          "planned_eu_amount_biodiversity",
-          "eu_eligible_costs_notional_biodiversity",
-          "eu_eligible_expenditure_notional_biodiversity",
-          "planned_eu_amount_clean_air",
-          "eu_eligible_costs_notional_clean_air",
-          "eu_eligible_expenditure_notional_clean_air",
-          "number_of_operations" )
-
-ESIF_2014_20_plan2imp[,Num] <- as.numeric(unlist(ESIF_2014_20_plan2imp[,Num]))
-ESIF_2014_20_plan2imp[ ,Num][is.na(ESIF_2014_20_plan2imp[ ,Num])]  <- 0
-
-ESIF_2014_20_plan2imp[,"year"] <-  as.integer(unlist(ESIF_2014_20_plan2imp[,"year"]))
-tibble::glimpse(ESIF_2014_20_plan2imp)
+ERDF_2014_20$category_of_region <- factor(ERDF_2014_20$category_of_region,
+                    levels = c("Less developed", "More developed","Transition", "Outermost or Northern Sparsely Populated", "VOID" ),
+                    labels = c("LessDev", "MoreDev","Transition", "Remote", "InterRegio" ))
 
 
-# STOP - I'm HERE  --------------------------------------------------------
+# assert + not_na
+ERDF_2014_20 %>%  assert(not_na, cci  ) %>% summarise(N = n_distinct(cci))#   OK
+# assert + is_uniq
+ERDF_2014_20 %>%  assert(is_uniq, cci  ) %>% summarise(N = n_distinct(cci))#  not unique !
+
+# assert + not_na
+ERDF_2014_20 %>%  assert(not_na, reference_date  ) %>% summarise(N = n_distinct(reference_date))#   has na
+table(ERDF_2014_20$reference_date, ERDF_2014_20$year, useNA = "ifany")
+
+# assert + is_uniq
+ERDF_2014_20 %>%  assert(is_uniq, reference_date  ) %>% summarise(N = n_distinct(reference_date))#  not unique!
+
+table( ERDF_2014_20$reference_date)
+table(ERDF_2014_20$cci)
+table(ERDF_2014_20$cci, ERDF_2014_20$reference_date) # At any given point, I have multiple instances of 1 cci ? why?
+
+ERDF_2014_20_y  <- ERDF_2014_20 %>%
+  select(-eafrd_fa, -eafrd_measure, -measure_short_description) %>% # EAFRD related
+  filter( reference_date != "2014-09-30") %>% # half years
+  filter( reference_date != "2015-06-30") %>%
+  filter( reference_date != "2020-06-30")
+
+table( ERDF_2014_20_y$reference_date)
+
+table( ERDF_2014_20_y$to)
+table( ERDF_2014_20_y$to_short)
+
+# Important values
+ALLOCATED
+total_amount
+  eu_amount
+  national_amount (co-financing)
+v
+
+total_eligible_cost    ??   (Total amount (EU+National) allocated to the projects (operations) selected by the programme managers)
+
+v
+total_eligible_expenditure
+
+
+# NEXT  - I'm HERE  --------------------------------------------------------
+
+# attaccare quel che serve
+# 2) "ESIF_2014_20_plan2imp" 3kkx-ekfq ERDF-ESF-CF planned vs implemented -------
+# categorization by fund and comparison PLANNED AMOUNTS TO IMPLEMENTED INVESTMENTS.
+# This dataset currently contains data to end-2016 and end- 2017. As the data is cumulative the **ANNUAL VALUES SHOULD NOT BE AGGREGATED *** but may be compared to see progress.
+
+
+## 3) ESIF_2014_20_categ lookup categorization --------------------------------------------
 
 
 # # Loading files -------------------------------------------------------------------------------------

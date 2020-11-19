@@ -2,9 +2,9 @@
 
 # Project Title
 
-"Xchè in Italia non riusciamo a realizzare quello che dobbiamo pianificato & gia finanziato?"
+"Xchè in Italia non riusciamo a realizzare quello che abbiamo pianificato & gia finanziato?"
 
-## Purpose 
+## Bacground 
  
 The European structural and investment funds are:
 
@@ -15,7 +15,20 @@ The European structural and investment funds are:
 5) **European maritime and fisheries fund (EMFF)** – helps fishermen to adopt sustainable fishing practices and coastal communities to diversify their economies, improving quality of life along European coasts.
 European maritime and fisheries fund (EMFF)
 
+Important fields
+
+`cci` Unique identifier of each operational programme (looked at for 2014/15/16/17/18/19/20)
+`title` Short title of the operational programme (may differ from formal name)
+`ver` Version of the operational programme reflected in the dataset
+`fund` Name of the ESI funds (ERDF, CF,...)
+`to`, `to_short`, `to_long` Theatic Objective
+`year` Filtering the data using the column "year" provides a shapshot of the decided amounts, project selection data and eligible expenditure declared by projects at that date.
+
+
+
+## Purpose 
 In the dataset, **ESIF** includes the 5 funds (ERDF, CF, ESF, EAFRD and EMFF).
+
 Here, I'll focus on the **European regional development fund (ERDF)** first ... 
 
 > [here](https://cohesiondata.ec.europa.eu/browse?category=2014+%2F+2020+Finances&limitTo=datasets) some more ESIF datasets
