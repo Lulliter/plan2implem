@@ -4,7 +4,7 @@
 
 "Xchè in Italia non riusciamo a realizzare quello che abbiamo pianificato & gia finanziato?"
 
-## Bacground 
+## Background 
  
 The European structural and investment funds are:
 
@@ -62,11 +62,21 @@ Below are the sources of datasets, R code chunks, and other interesting articles
 + [EU cohesion structural funds](https://cohesiondata.ec.europa.eu/stories/s/Information-maps-tracking-progress-in-investment-a/wjiv-jyr9m)
 + [Opencoesione](https://opencoesione.gov.it/it/nature/infrastrutture/)
 
++ **DEF** has a section on "Monitooraggio dei Fondi Strtutturali" ----> go check!!
+che viene monitorato da [IGRUE-Ispettorato Generale per i Rapporti finanziari con l'Unione Europea](http://www.rgs.mef.gov.it/VERSIONE-I/e_government/amministrazioni_pubbliche/igrue/index.html)
 
 ##### Reference
+> "Corruptissima re publica plurimae leges"" 
+ Tacito (Annales, Libro III, 27), che significa: "moltissime sono le leggi quando lo Stato è corrotto". 
+
 1. Sabino Cassese "troppa politica (e schieramenti politici) e troppo poca amministrazione (see _Il buon governo. L'età dei doveri_ )
 
-2. 
+2. Aspen Institute: Il futuro dell'italia - strettoie burocratiche 
+"Il “modello Genova” per il ponte, ma anche le regole per Expo 2015 e quelle della legge Obiettivo sono indicazioni opportune (cfr. anche infra, cap. INFRASTRUTTURE, par.4.3)."
+
+
+3. Luisa Torchia 
+
 
 
 ##### Inspiring open source R projects
