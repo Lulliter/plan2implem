@@ -25,7 +25,6 @@ Important fields
 `year` Filtering the data using the column "year" provides a shapshot of the decided amounts, project selection data and eligible expenditure declared by projects at that date.
 
 
-
 ## Purpose 
 In the dataset, **ESIF** includes the 5 funds (ERDF, CF, ESF, EAFRD and EMFF).
 
