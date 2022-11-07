@@ -39,9 +39,6 @@ Cohesion_token <- Sys.getenv("Cohesion_token")
 ESIF_2014_20_plan <- read.socrata(
     # "https://cohesiondata.ec.europa.eu/resource/99js-gm52.json"#, JSON restituisce datatype chr
     "https://cohesiondata.ec.europa.eu/2014-2020/ESIF-2014-2020-FINANCES-PLANNED-DETAILS/e4v6-qrrq"#,   just copy/paste the URL from address bar, RSocrata defaults to download from CSV
-    # app_token = Cohesion_token,
-    # email     = "lmmm76@georgetown.edu",
-    # password  = "!cohesion2020"
 )
 
 str(ESIF_2014_20_plan)
@@ -78,9 +75,7 @@ ESIF_2014_20_plan <- ESIF_2014_20_plan %>% arrange(ms, fund, title) # evita che 
 ESIF_2014_20_fin <- read.socrata(
    # "https://cohesiondata.ec.europa.eu/resource/99js-gm52.json"#, JSON restituisce datatype chr
     "https://cohesiondata.ec.europa.eu/2014-2020-Finances/ESIF-2014-2020-Finance-Implementation-Details/99js-gm52"#,   just copy/paste the URL from address bar, RSocrata defaults to download from CSV
-    # app_token = Cohesion_token,
-    # email     = "lmmm76@georgetown.edu",
-    # password  = "!cohesion2020"
+
 )
 
 str(ESIF_2014_20_fin)
@@ -118,9 +113,9 @@ table(ESIF_2014_20_fin$to)
 ESIF_2014_20_plan2imp <- read.socrata(
   # "https://cohesiondata.ec.europa.eu/resource/3kkx-ekfq.json"#, imprecise datatype
   "https://cohesiondata.ec.europa.eu/2014-2020-Categorisation/ESIF-2014-2020-categorisation-ERDF-ESF-CF-planned-/3kkx-ekfq"#, better datatype
-  # app_token = Cohesion_token,
-  # email     = "lmmm76@georgetown.edu",
-  # password  = "!cohesion2020"
+  # app_token =  ...,
+  # email     = "...",
+  # password  = "..."
 )
 str(ESIF_2014_20_plan2imp)
 

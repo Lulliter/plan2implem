@@ -8,7 +8,9 @@ cd ./
 git status
 
 # Add changes to git Index.
-git add docs/* # specific
+git add README.html
+
+git add fig/* # specific
 git add -A # ALL
 git add -u # tracked
 
@@ -19,7 +21,7 @@ if [ $# -eq 1 ]
 fi
 # ... Commit Those changes.
 git commit -m "$msg"
-		# git commit -m "loaded 3 datasets"
+		# git commit -m "added quarto brief analysis "
 		# git commit -m " output in ./docs/"
 
 # Push source and build repos.

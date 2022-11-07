@@ -470,7 +470,6 @@ saveRDS(p2_int ,file = "fig/p2_int.Rds" )
 # Interactive Table 2021 - ERDF planned/done by ... ---------------------------------------
 # --- --- --- --- --- ------ --- ------ --- ------ --- ------ --- ------ --- --- #
 
-# >>>>>>>>> NEXT  - plan2imp interactive  table --------------------------------
 # https://glin.github.io/reactable/articles/twitter-followers/twitter-followers.html
 
 
@@ -495,6 +494,8 @@ ERDF_imp_L_tab_int <- ERDF_imp %>%
 
 paint(ERDF_imp_L_tab_int)
 
+
+# react T (no barcharts) --------------------------------------------------
 t_react <- reactable(
     data = ERDF_imp_L_tab_int,
     # formatting
@@ -537,8 +538,8 @@ t_react <- reactable(
         )))
 
 
-
-# Add mini barcharts ------------------------------------------------------
+# react T (YES  barcharts) --------------------------------------------------
+### Add mini barcharts ------------------------------------------------------
 # Render a bar chart with a label on the left
 bar_chart <- function(label, width = "100%", height = "0.875rem", fill = "#00bfc4", background = NULL) {
     bar <- div(style = list(background = fill, width = width, height = height))
@@ -565,7 +566,7 @@ t_react2 <- reactable(
                        style = list(fontWeight = "bold",background = "rgba(0, 0, 0, 0.03)")),
 
         #region = colDef(aggregate = "unique"),
-        unique_programs = colDef(name = "N. of Programs",
+        unique_programs = colDef(name = "N. & Id of Programs",
                                  aggregate = "count",
                                  format = colFormat(#locales = "it-IT",
                                      separators = TRUE, digits = 0 )),
@@ -614,6 +615,7 @@ saveRDS(t_react2 ,file = "fig/t_react2.Rds" )
 
 
 
+# >>>>>>>>> NEXT  ?????  --------------------------------
 
 
 
