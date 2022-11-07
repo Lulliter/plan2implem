@@ -6,19 +6,36 @@
 require(ggplot2)
 require(grDevices)
 require(RColorBrewer)
+require(grDevices)
 
-# ----- Define the theme
-my_theme <- theme(
-  legend.position = "right",
-  panel.background = element_rect(fill = NA),
-  panel.border = element_rect(fill = NA, color = "grey75"),
-  axis.ticks = element_line(color = "grey85"),
-  axis.text.x = element_text(size = 9),
-  axis.text.y = element_text(size = 9, face = "bold"), # they are flipped!!!
-  panel.grid.major = element_line(color = "grey95", size = 0.2),
-  panel.grid.minor = element_line(color = "grey95", size = 0.2),
-  legend.key = element_blank()
-)
+#sysfonts::font_add_google(name = "Roboto Condensed", family =  "Condensed")
+sysfonts::font_add(family = "Roboto Condensed", regular =  "~/Applications/Roboto_Condensed/RobotoCondensed-Regular.ttf")
+
+# ----- Define my_theme ------
+my_theme <-     # theme_minimal(base_family = "Roboto Condensed", base_size = 12) +
+    theme(legend.position = "right",
+          #panel.background = element_rect(fill = NA),
+          panel.border = element_rect(fill = NA, color = "grey75"),
+          axis.ticks = element_line(color = "grey85"),
+          axis.text.x = element_text(size = 9,
+                                     # inclinato
+                                     angle = 45, hjust = 1),
+          axis.text.y = element_text(size = 9, face = "bold"), # they are flipped!!!
+          panel.grid.major = element_line(color = "grey95", size = 0.2),
+          panel.grid.minor = element_line(color = "grey95", size = 0.2),
+          # Bold legend titles
+          legend.title = element_text(face = "bold"),
+          legend.key = element_blank(),
+          strip.text = element_text(face = "bold"),
+          plot.title = element_text(face = "bold",family = "Roboto")
+
+    )
+
+# color palettes -----
+mycolors_gradient <- c("#ccf6fa", "#80e8f3", "#33d9eb", "#00d0e6", "#0092a1")
+mycolors_contrast <- c("#E7B800", "#a19100", "#0084e6","#005ca1", "#e60066" )
+
+
 # ----- To USE: simply add to plot `+ my_theme`
 
 
@@ -52,7 +69,7 @@ facet_count_plot_func <- function(data, x_str, xl, yl, t, subt, palette, factor,
 # ----- PALETTE of 3 divergent colors
 cols_div_3 <- c(colorRampPalette(RColorBrewer::brewer.pal(8, "Dark2"))(8)[c(1, 4, 8)])
 cols_div_3
-# ----- PALETTE of 5 sequential values in the blue palette so it is not too clear 
+# ----- PALETTE of 5 sequential values in the blue palette so it is not too clear
 cols_blue_seque <- c( colorRampPalette(RColorBrewer::brewer.pal(9, "Blues"))(6)[3:7]  )
 cols_blue_seque
 
@@ -68,12 +85,12 @@ cols_blue_seque
 # 		  subt = "(Count by election method across Ownership types)",
 # 		  factor = "Q1_ownership_lbl"
 # )
-# 
+#
 # Q46hireCEO_own_plot
 # ggsave(Q46hireCEO_own_plot, filename = here::here("07_output", "Q46hireCEO_own_plot.png"))
-# 
+#
 # # ----- EXAMPLE 1.2) CALL FUNC with factor =  Q46_CEOelected_Who_bis_F,
-# # ----- CALL FUNC  Q46_CEOelected_Who_bis_F, 
+# # ----- CALL FUNC  Q46_CEOelected_Who_bis_F,
 # Q46hireCEO_size_plot <- facet_count_plot_func(
 #   data = Bra1_compl_Gov,
 #   palette = cols_blue_seque,
@@ -84,7 +101,7 @@ cols_blue_seque
 #   subt = "(Count by election method across Coverage types)",
 #   factor = "Cov_pop_rango_lbl2"
 # )
-# 
+#
 # Q46hireCEO_size_plot
 # ggsave(Q46hireCEO_size_plot, filename = here::here("07_output", "Q46hireCEO_size_plot.png"))
 
@@ -92,7 +109,7 @@ cols_blue_seque
 
 # ----- 2) FUNC to create scatter plot of 2 Cont Var + BY 1 Cat var -------------------------------
 point_plot_func <- function(factor, x_str, y_str, xl, yl, t, rvrs = T, lt = "Factor levels") {
-	ggplot(data = Bra1_complete, 
+	ggplot(data = Bra1_complete,
 			 aes_string(x = x_str, y = y_str, color = factor)) +
 		geom_point(size = 3, alpha = 0.5, position = "jitter") +
 		xlab(xl) +
@@ -121,35 +138,35 @@ point_plot_func <- function(factor, x_str, y_str, xl, yl, t, rvrs = T, lt = "Fac
 # ) +
 #   coord_cartesian(ylim = c(0, 100)) +
 #   geom_rect(aes(xmin = 0, xmax = Inf, ymin = 50, ymax = Inf), alpha = 0.005, fill = "red", linetype = "blank")
-# 
+#
 # ggsave(dot1, filename = here::here("07_output", "Plot_DotsNWR_Meter_byMIX.png"))
 
 
 # ----- 3) FUNC to create box plot object 1 Cont Var + BY 1 Cat var -------------------------------
-box_plot_func <- function(factor, 
+box_plot_func <- function(factor,
 								  lt = "Factor levels",
-								  x_str = "quality.rank", 
-								  y_str, 
+								  x_str = "quality.rank",
+								  y_str,
 								  xl = "Quality rank",
 								  yl,
 								  t){
 	ggplot(data = Bra1_complete, aes_string(x=x_str, y = y_str, color=factor)) +
 		geom_boxplot() +
 		xlab(xl) +
-		ylab(yl) + 
+		ylab(yl) +
 		ggtitle(t) +
 		my_theme
 }
 
 # ----- EXAMPLE 3.1) call Func :   NRWm3_pct BY Q41_ClandConn_Analyzed
 # box_plot_func(factor = NULL,
-# 				  x_str = "Q41_ClandConn_Analyzed", 
-# 				  y_str = "NRWm3_pct", 
-# 				  xl = "Is there a process to detect informal connections?", 
-# 				  yl = "Percent NRW", 
+# 				  x_str = "Q41_ClandConn_Analyzed",
+# 				  y_str = "NRWm3_pct",
+# 				  xl = "Is there a process to detect informal connections?",
+# 				  yl = "Percent NRW",
 # 				  t = "Perc of NRW vs. Having a system to detect IRREGULAR CONNECTIONS") +
-# 	coord_cartesian(ylim=c(0,100)) +  
+# 	coord_cartesian(ylim=c(0,100)) +
 # 	geom_rect(aes(xmin=0,xmax=Inf,ymin=50,ymax=Inf), alpha=0.005,fill="red", linetype="blank") -> box1
-# 
-# # -----save 
+#
+# # -----save
 # ggsave(box1, filename=here::here("07_output", "Plot_BOXNWR_Cland.png"))

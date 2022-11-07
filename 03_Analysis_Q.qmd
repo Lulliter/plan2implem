@@ -1,0 +1,117 @@
+---
+title: "Analysis ERDF 2014-2020 cycle in Italy"
+author: "Luisa M. Mimmi"
+date: "`r format(Sys.time(), '%B %Y')`"
+toc: true
+format:
+  html:
+    html-math-method: katex
+    code-tools: true
+    self-contained: true
+execute:
+  warning: false
+---
+
+<!-- :::{.callout-note} -->
+<!-- Note that there are five types of callouts, including:  -->
+<!-- `note`, `tip`, `warning`, `caution`, and `important`. -->
+<!-- ::: -->
+
+```{r}
+#| echo: false
+# pkg_list <- c(
+#   "tidyverse", "gt", "gtExtras", "reactable", "ggiraph", "here", "quarto",
+#   "rmarkdown", "gtsummary", "palmerpenguins", "fs", "skimr"
+#   )
+# install.packages(pkg_list)
+```
+
+## ERDF spending in Italy
+
+This plots show the Italy subset, limited to the ERDF (European Regional Development Fund) taken from the [**ESIF 2014-2020 Finance Implementation Details (99js-gm52)**](https://dev.socrata.com/foundry/cohesiondata.ec.europa.eu/99js-gm52) dataset.
+
+The most important financial variables observed in euro (over time) are: <!-- see  https://dev.socrata.com/foundry/cohesiondata.ec.europa.eu/99js-gm52 -->
+
+-   `total_amount` = Total decided amount (EU + National allocation), also referred to as *"Total Cost"*
+-   `total_eligible_cost` = Total amount (EU + National) allocated to the projects (operations) selected, also referred to as *"total eligible cost"* reported by the national and regional programmes to the Commission.
+-   `total_eligible_expenditure` = Total expenditure eligible for reimbursement, as reported by the beneficiary projects to the programmes. Also referred to as *"total eligible expenditure"*, it is reported by the national and regional programmes to the Commission.
+
+Other qualifying variables are: 
+
+-   `ccc` = *"Unique identifier"* of each operational programme.
+-   `to_short` = Short name for the *"thematic objective"*. For example: "Research and Innovation" stands for "Strengthening research, technological development and innovation. 
+-   `priority` = Priority Axis: the investment pillars in the programme. Unfortunately, since there is no harmonised numbering or naming of Priority Axes, this variable is useless for comparison. 
+-   `category_of_region` = The three main categories of region are: *"less developed"*, *"transition"*, and *"more developed"*. 
+
+
+
+
+## ERDF by region category
+![ERDF by region category](fig/ERDF_eligVspent_reg_time_facet.png){#fig-plot1}
+
+## ERDF by theme category
+```{r}
+#| echo: true
+#| label: fig-plot2
+#| fig-cap: "ERDF by theme category"
+#| code-fold: true
+knitr::include_graphics(here::here("fig", "ERDF_eligVspent_theme_time_facet.png"))
+```
+
+![ERDF by theme category](fig/ERDF_eligVspent_theme_time_facet.png){#fig-plot2}
+
+
+::: callout-note
+In some cases (e.g. @fig-plot2, in section **Research and Innovation**) the amount decided (`total_eligible_cost)` exceeds the `total_amount` programmed. Why? This happens generally in the last years of a programme period. They do this in order to avoid the risks 1) that some of the decided / selected projects fail to materialise or 2) that irregularities occur over the programme life time which lead to the withdrawal of support to those projects.
+:::
+
+<!-- ## Plot 3 ( = Plot 2, but interactive) -->
+```{r}
+#| echo: false
+#| eval: false
+#| label: fig-plot3
+#| fig-cap: "ERDF by theme category INTERACTIVE"
+#| code-fold: true
+ 
+library(ggiraph)
+plot1_int <- readRDS(file = "fig/p2_int.Rds")
+
+girafe(
+  ggobj = plot1_int#,
+ # width_svg = 6,
+ # height_svg = 3
+)
+
+# ?? for some reasons it messe up the theme
+```
+
+
+## ERDF pent/allocated % spending, by theme & by program
+
+Collapsible table made following [this example](https://glin.github.io/reactable/articles/building-twitter-followers.html)
+
+:::{.callout-tip}
+Note that Id of Programs there are five types of callouts, including:
+`note`, `tip`, `warning`, `caution`, and `important`.
+:::
+
+```{r}
+#| echo: true
+#| code-fold: true
+#| label: tbl-table1
+#| tbl-cap: "ERDF by theme category INTERACTIVE"
+
+library(reactable)
+t_react2 <- readRDS(file = "fig/t_react2.Rds") 
+t_react2 
+```
+
+<!-- https://ec.europa.eu/regional_policy/en/faq/about_open_data/#13 -->
+
+# Reference
+Using some tools for the first time, I followed this tutorials/examples:
+
++ `Quarto` (see presentation [here](https://rstudio-conf-2022.github.io/get-started-quarto/materials/07-plots-tables.html#/block-layout-arbitrary-content))
++ R package `reactable` (see examples [here](https://glin.github.io/reactable/articles/building-twitter-followers.html#finishing-touches))
+
+The code written (in R) to retrieve and clean the data can be found at this [Github repo](https://github.com/Lulliter/plan2implem)
