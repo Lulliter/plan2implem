@@ -1,0 +1,637 @@
+---
+title: "02_b_ExploreMoreCountries"
+author: "Luisa M Mimmi"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Set up & data 
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+# Pckgs ---------------------------------------------------------------------------------------
+packages <- c("here",
+             "tidyverse",
+             "magrittr",
+             "lubridate",
+             "janitor",
+             "assertr",
+             "paint",
+             "skimr",
+             "scales",
+              
+             "ggiraph",
+             "patchwork",
+             "reactable",
+             "htmltools",
+              "data.table",
+            "shiny",
+             "plotly"
+)
+
+for (package in packages) {
+    args <- list(character.only = TRUE, warn.conflicts = FALSE, quietly = TRUE)
+    if(!do.call(require, c(package, args))) {
+        install.packages(package)
+        do.call(require, c(package, args))
+    }
+}
+
+# Functions -----------------------------------------------------------------------------------
+# source(here::here("R", "helpers.R"))
+#source(here::here("R", "ggplot-theme.R"))
+
+# color palettes -----------------------------------------------------------------------------------
+mycolors_gradient <- c("#ccf6fa", "#80e8f3", "#33d9eb", "#00d0e6", "#0092a1")
+
+#                   fat gold  |Romaine Green| Blue ColaD |directoire Blue| Bourgeois  | Aztec Turquoise | Fulvous
+mycolors_contrast <- c("#E7B800", "#a19100", "#0084e6", "#005ca1", "#e60066" , "#00d8e6", "#e68000")
+
+theme_col <-  c("#00d7e6", "#0065e6",  "#10069f")  
+country_col <- c("#d8e600", "#e68000",  "#e60c00")     
+
+# theme  -----------------------------------------------------------------------------------
+#Define gppr_theme() function
+
+theme_cohesion <- function(){ 
+    font <- "Roboto"   #assign font family up front
+    #theme_minimal() %+replace%    #replace elements we want to change
+    theme(
+          panel.background = element_rect(fill = NA),
+          panel.border = element_rect(fill = NA, color = "grey75"),
+          axis.ticks = element_line(color = "grey85"),
+          # inclinato
+          axis.text.x = element_text(angle = 45, hjust = 1),# size = 9,
+          # axis.text.y = element_text(size = 9, face = "bold"),  
+          panel.grid.major = element_line(color = "grey95", size = 0.2),
+          panel.grid.minor = element_line(color = "grey95", size = 0.2),
+          #strip.text = element_text(face = "bold"),
+          #plot.title = element_text(face = "bold" ),
+  #since the legend often requires manual tweaking based on plot content, don't define it here
+          legend.position = "bottom",
+          # Bold legend titles
+          legend.title = element_text(face = "bold"),
+          # legend.title = element_blank(), # to remove it
+          legend.key = element_blank()
+    )
+}
+# load data  --------------------------------------------------------------
+# This is ......  
+#ERDF_plan <- readRDS("~/Github/plan2implem/data/rawdata_oct2022/ERDF_plan.Rds")
+# This is ......  67571
+ESIF_imp <- readRDS("~/Github/plan2implem/data/rawdata_oct2022/ESIF_2014_20_fin.Rds")
+# This is ...... 
+#ERDF_plan2imp <- readRDS("~/Github/plan2implem/data/rawdata_oct2022/ERDF_plan2imp.Rds")
+```
+
+# Data prep
+These dataset (**ESIF 2014-2020 Finance Implementation Details**) is described [here](https://cohesiondata.ec.europa.eu/2014-2020-Finances/ESIF-2014-2020-Finance-Implementation-Details/99js-gm52)
+[exe analysis viz](https://cohesiondata.ec.europa.eu/stories/s/Information-maps-tracking-progress-in-investment-a/wjiv-jyr9)
+```{r}
+# Only ERDF for all countries
+ESIF_imp <-  ESIF_imp %>% 
+    # filter(fund == "ERDF") %>% # 16732
+    # select(-eafrd_measure, -measure_short_description,
+    #        -eafrd_fa, -focus_area_short_description) %>% 
+    
+    #mutate(year = as.numeric(year)) %>% 
+    # I eliminated the Dec 31 30 instances (to keep it clean and yearly progress)
+    filter( reference_date != "2014-06-30") %>% # half years
+    filter( reference_date != "2015-06-30") %>%
+    filter( reference_date != "2016-06-30") %>%
+    filter( reference_date != "2017-06-30") %>%
+    filter( reference_date != "2018-06-30") %>%
+    filter( reference_date != "2019-06-30") %>%
+    filter( reference_date != "2020-06-30") %>%
+    filter( reference_date != "2021-06-30")  #%>%
+    # # WRONG TO ADD HERE PERCENTAGES .... add Perc spend
+    # mutate(Perc_spent = total_eligible_expenditure / total_eligible_cost,
+    #       Perc_spent2 = Perc_spent ) %>% 
+    #         # ------- when spent > eligible [Why can this be?]
+    # mutate(across(c("Perc_spent2"), ~na_if(., Inf)),
+    #        # ------- when spent (negative) > eligible (==0) [Why can this be?]
+    #        across(c("Perc_spent2"), ~na_if(., -Inf)),
+    #        # ------- when spent =0 and eligible = 0 
+    #        across(c("Perc_spent2"), ~replace_na(NaN, 0)), # I think this should count as 0 
+    #        )
+
+
+# ESIF_imp %>% skim (tidyselect::all_of(c("Perc_spent", "Perc_spent2" ))) %>%
+#     tibble::as_tibble()  
+
+# give easy labels...
+ESIF_imp$region <- factor(ESIF_imp$category_of_region,
+                                          levels = c("Less developed", "More developed","Transition",
+                                                     "Outermost or Northern Sparsely Populated",
+                                                     "VOID",
+                                                     "REACT-EU" ),
+                                          labels = c("LessDev", "MoreDev","Transition",
+                                                     "Remote",
+                                                     "InterRegio", # VOID
+                                                     "REACT"  ))
+
+table(ESIF_imp$region, useNA = "ifany")
+
+
+
+ 
+paint(ESIF_imp)
+
+#rm(args, ESIF_imp)
+```
+
+# Data reduce
+
+I don't care about the time series now, I just want to see the latest available update (e.g. jun 2022) for different countries
+```{r}
+# ESIF_imp21 <- ESIF_imp %>% 
+#     filter (reference_date == "2021-12-31") # 3206
+ESIF_imp22 <- ESIF_imp %>% 
+    filter (reference_date == "2022-06-30") %>%  # 3208
+    select(-ver, -category_of_region, -eafrd_measure,-focus_area_short_description ,-eafrd_fa, -year, -ir_last_version) %>% 
+    rename(eafrd_meas = measure_short_description) %>% 
+    relocate(region, .after = priority) %>% 
+    # drop EU /national amount whihc I don';'t need 
+    select(-eu_amount, -national_amount  )
+
+ paint(ESIF_imp22)
+#rm(args, check, ESIF_imp)
+```
+
+
+# Gather FINANCIAL vars in one col --> longER shape
+https://r-cubed-intermediate.rostools.org/pivots.html#exercise-summarise-your-data-after-pivoting
+```{r}
+ESIF_imp22_L <- ESIF_imp22 %>%
+    relocate (eu_co_financing, .after = eafrd_meas) %>%
+    relocate (reference_date, .after = eu_co_financing) %>%
+        relocate (priority, .after = region) %>%
+    # Group all the fin variables (including percent)
+    pivot_longer(cols = total_amount:total_eligible_expenditure,
+                 names_to = "fin_vars",
+                 values_to = "fin_values"
+    ) %>%  # 12832  obs 
+# add group ID     
+    group_by(# ms, redundant
+        cci,
+        fund,
+        region,
+        priority
+    ) %>% 
+    mutate( group_ID = cur_group_id()) %>% 
+    ungroup() %>% 
+    relocate (group_ID, .before = ms)
+
+paint(ESIF_imp22_L)
+```
+
+### >>> Redone % spent *** function`fill`***
+> I suspect the Perc_spent2 I have calculated earlier here doesn't make sense (it was wrongly aggregated).... ??   
+
+Here I have reduced the year cross-section to granular long data, then I repeat the fin values for 3 times (corresponding to 3 fin_vars) 
+
+```{r}
+# calculate LOCAL % 
+ESIF_imp22_L <-  ESIF_imp22_L %>%
+    # reduce # of countries
+    filter(ms_name %in% c("Italy", "France", "Spain", "Germany" ,"Greece", "Slovenia", "Sweden") ) %>% 
+    tidyr::drop_na(fin_values) %>%
+    group_by(group_ID) %>%
+    #filter(fin_vars == "total_amount") %>%
+    mutate(planned = ifelse (fin_vars == "total_amount", fin_values, NA),
+           elig = ifelse (fin_vars == "total_eligible_cost", fin_values, NA),
+           spent = ifelse (fin_vars == "total_eligible_expenditure", fin_values, NA),
+           ) %>% 
+    ungroup() %>% 
+    # complete planned
+    fill(planned, .direction = "down" ) %>% 
+    # complete elig 
+    group_by(group_ID) %>% 
+    fill(elig, .direction = "downup" )  %>% 
+    dplyr::ungroup() %>% 
+    # complete planned
+    group_by(group_ID) %>% 
+    fill(spent, .direction = "up" )  %>% 
+    dplyr::ungroup() %>% 
+    # NOW I try to recreate granular percent
+    mutate(
+        p_elig_on_plan = elig/planned,
+        p_spent_on_plan = spent/planned,
+        p_spent_on_elig = spent/elig)  #  %>% 
+    #         # ------- when spent > eligible [Why can this be?]
+    # mutate(across(c("perc_on_plan", "perc_on_elig"), ~na_if(., Inf)),
+    #        # ------- when spent (negative) > eligible (==0) [Why can this be?]
+    #        across(c("perc_on_plan", "perc_on_elig"), ~na_if(., -Inf)),
+    #        # ------- when spent =0 and eligible = 0 
+    #        across(c("perc_on_plan", "perc_on_elig"), ~replace_na(NaN, 0)), # I think this should count as 0 
+    # )
+
+paint(ESIF_imp22_L)
+```
+
+# Group_by + summarize 
+
+```{r}
+summarize <- ESIF_imp22_L %>% 
+    dplyr::group_by(ms, to_short) %>% 
+    summarize(N_proj = n_unique(cci),
+        AVG_plan = sum(planned)/N_proj,
+              AVG_elig = sum(elig)/N_proj,
+              AVG_spent = sum(spent)/N_proj,
+    PERC_sp_el = AVG_spent/AVG_elig) %>% 
+    filter(ms == "IT")
+
+
+summarize2 <-  summarize %>% 
+    group_by(to_short) %>% 
+    summarize(PERC_sp_el_BYtheme = mean(PERC_sp_el)
+    ) %>% 
+    ungroup()
+
+view(summarize)
+recap <- left_join(summarize2, summarize) %>% 
+    select(to_short,PERC_sp_el_comp = PERC_sp_el_BYtheme, PERC_sp_el_IT = PERC_sp_el)
+
+view(recap)
+```
+
+
+# Plot by ms by fund by theme 
+```{r}
+table(ESIF_imp22_L$ms_name)
+
+ESIF_imp22_L %>% 
+    # -------- plot 
+    ggplot(mapping = aes(x = ms_name, y = fin_values, fill = fin_vars )) +
+    #geom_col(size = 1) +
+    geom_col(position = "dodge") +
+    # custom color
+    scale_fill_manual(values = theme_col) +
+    # change format for y axis (--> euro)
+    scale_y_continuous(labels= scales::label_number(scale = 1/1000000,
+                                                    prefix = "€",
+                                                    suffix = " mln",
+                                                    big.mark = ".",
+                                                    decimal.mark = ",")) +
+    # -------- facet variable
+    facet_wrap(~to_short, ncol =3,
+               labeller = labeller(to_short = label_wrap_gen(width = 20))) +
+    # coord_flip() +
+    # -------- theme 
+    labs(x = NULL,
+         y = NULL,
+         title = "ERDF 2014-2020: funds implementation in Italy by theme",
+         subtitle = "Data updated on 28 October, 2022",
+         caption = "Source: ESIF 2014-2020 Finance Implementation Details (99js-gm52)") +
+    guides(fill=guide_legend(title="Financial Values")) + 
+    theme_cohesion()
+```
+
+
+# Iterate plots by theme with ggplot2 and purrr 
+[dplyr::group_nest + purrr::map2](https://community.rstudio.com/t/looping-through-the-levels-of-categorical-variable-for-ggplot/143467/3)
+
+
+## --- COUNTRY `group_nest` + `map2` + `walk2`
+use nested data frames and purrr functions to iterate over subsets of your data. This code saves  & prints individual plots for each level on a categorical variable.
+```{r}
+# set path (will need extra / )
+path_fig <- fs::path_wd("fig")
+# 
+# unique(ESIF_imp22_L$ms_name)
+# unique(ESIF_imp22_L$to_short)
+# 
+choose <- ESIF_imp22_L %>%
+    filter(ms == "IT") %>%
+    group_by(to_short) %>%
+    summarise(sum_tt = sum(fin_values, na.rm = TRUE),
+              sum_pla = sum(planned, na.rm = TRUE),
+              sum_sp = sum(spent, na.rm = TRUE),
+              )
+
+ESIF_nest_country <- ESIF_imp22_L %>% 
+    filter(to_short %in% c( "Competitiveness of SMEs",
+                            "Sustainable & Quality Employment",
+                            "Educational & Vocational Training",
+                            "Social Inclusion",
+                            
+                            "Research & Innovation",
+                            "Network Infrastructures in Transport and Energy",
+                            
+                            "Low-Carbon Economy",
+                            "Environment Protection & Resource Efficiency",
+                            "Climate Change Adaptation & Risk Prevention",
+                            "Fostering crisis repair and resilience",
+
+                            "Information & Communication Technologies",
+                            "Technical Assistance",
+                            "Efficient Public Administration",
+                            "Multiple Thematic Objectives (ERDF/CF/ESF)")) %>% 
+    # x AXIS PREP:Reorder theme a precise order 
+     mutate(to_short = fct_relevel(as.factor(to_short), 
+                                  "Competitiveness of SMEs",
+                            "Sustainable & Quality Employment",
+                            "Educational & Vocational Training",
+                            "Social Inclusion",
+                            
+                            "Research & Innovation",
+                            "Network Infrastructures in Transport and Energy",
+                            
+                            "Low-Carbon Economy",
+                            "Environment Protection & Resource Efficiency",
+                            "Climate Change Adaptation & Risk Prevention",
+                            "Fostering crisis repair and resilience",
+
+                            "Information & Communication Technologies",
+                            "Technical Assistance",
+                            "Efficient Public Administration",
+                            "Multiple Thematic Objectives (ERDF/CF/ESF)")) %>% 
+    # Nest a tibble by factor ...[SAME AS group_by(to_short) %>% nest()]
+    dplyr::group_nest (ms_name) %>% # ---> ms | data
+    # add a column with plotS (generated by each pair category:data)
+    mutate(plot = map2( # apply a function to pairs...
+        .x = data, #... my 2 cols
+        .y = ms_name,
+        # my actual plot
+        .f = ~{
+            ggplot(.x, # the nested data 
+                   aes(x = to_short, y = fin_values,  fill = fin_vars )) +
+                geom_col(position = "dodge") +
+                #geom_hline(yintercept = 500000000) +
+                # custom color
+                scale_fill_manual(values = country_col) +
+                # change format for x axis:   |(--> bold (Italy))
+                #scale_x_discrete(labels=c("Italy"=expression(bold(underline(Italy))), parse=TRUE))+
+                # change format for x axis: wrap  
+              # scale_x_discrete( labels== scales::label_wrap(10)) +
+
+                # change format for y axis (--> euro)
+                scale_y_continuous(labels= scales::label_number(scale = 1/1000000,
+                                                                prefix = "€",
+                                                                suffix = " mln",
+                                                                big.mark = ".",
+                                                                decimal.mark = ",")) +
+                # -------- country 
+                labs(x = NULL,
+                     y = NULL,
+                     title = paste("ERDF 2014-2020 by country: ", .y) ,
+                     subtitle = "Data updated on 28 October, 2022",
+                     caption = "Source: ESIF 2014-2020 Finance Implementation Details (99js-gm52)") +
+                guides(fill=guide_legend(title="Financial Values")) + 
+                #coord_flip() +
+                theme_cohesion()
+            
+        }
+    )) 
+
+
+ESIF_nest_country %>% 
+    walk2(# trigger side effect from pairs  --> ggsave 
+        .x = .$plot,
+        .y = .$ms_name,
+        .f = ~ ggsave(paste0(path_fig, "/Country_", .y, ".tiff"), plot = .x)
+    ) 
+
+
+saveRDS(ESIF_nest_country, file = paste0("./data/out_data/ESIF_nest_country.Rds"))
+
+ESIF_nest_country %>%
+    walk2(# trigger side effect from pairs  --> print
+        .x = .$plot,
+        .y = .$ms_name,
+        .f = ~ print(.x)
+    )
+```
+
+
+
+## --- COUNTRY shiny /plotly 
+
+```{r eval=FALSE}
+# library(shiny)
+# library(plotly)
+
+# I would need YAML runtime: shiny
+
+ui_c <- shinyUI(
+    fluidPage(
+        selectInput("selectPlot", "Select Member State:", c("Italy",
+                                                    "France",
+                                                    "Germany",
+                                                    "Spain",
+                                                    "Greece",
+                                                    "Sweden",
+                                                    "Slovenia"), 
+                    selected = "Planned | Eligible | Committed funds"),
+        plotlyOutput("plot")
+    )
+)
+
+print(ESIF_nest_country$ms_name)
+
+server_c <- shinyServer(function(input,output,session){   
+
+    data <- eventReactive(input$selectPlot,{
+        switch(input$selectPlot,
+               "France" = ESIF_nest_country$plot[[1]],#gg1,
+               "Germany" = ESIF_nest_country$plot[[2]],#gg2,
+                "Greece"  = ESIF_nest_country$plot[[3]],#gg3,
+                "Italy"  = ESIF_nest_country$plot[[4]],#gg4,
+                "Slovenia"  = ESIF_nest_country$plot[[5]],#gg5,
+                "Spain" = ESIF_nest_country$plot[[6]],#gg6,
+                "Sweden" = ESIF_nest_country$plot[[7]] #gg7
+               )
+    })
+
+    output$plot <- renderPlotly({
+        data()
+    } )
+})
+
+# Run the application 
+shinyApp(ui = ui_c, server = server_c)
+```
+
+## --- THEME `group_nest` + `map2` + `walk2` (alternative to `facet_wrap`)
+use nested data frames and purrr functions to iterate over subsets of your data. This code saves  & prints individual plots for each level on a categorical variable.
+```{r}
+# set path (will need extra / )
+#path_fig <- fs::path_wd("fig")
+
+# unique(ESIF_imp22_L$ms_name)
+# unique(ESIF_imp22_L$to_short)
+# 
+# choose <- ESIF_imp22_L %>% 
+#     filter(ms == "IT") %>% 
+#     group_by(to_short) %>% 
+#     summarise(sum_tt = sum(fin_values, na.rm = TRUE),
+#               sum_pla = sum(planned, na.rm = TRUE),
+#               sum_sp = sum(spent, na.rm = TRUE),
+#               )
+
+ESIF_nest_theme <- ESIF_imp22_L %>% 
+    filter(to_short %in% c( "Competitiveness of SMEs",
+                            "Sustainable & Quality Employment",
+                            "Educational & Vocational Training",
+                            "Social Inclusion",
+                            
+                            "Research & Innovation",
+                            "Network Infrastructures in Transport and Energy",
+                            
+                            "Low-Carbon Economy",
+                            "Environment Protection & Resource Efficiency",
+                            "Climate Change Adaptation & Risk Prevention",
+                            "Fostering crisis repair and resilience",
+
+                            "Information & Communication Technologies",
+                            "Technical Assistance",
+                            "Efficient Public Administration")) %>% 
+    # Reorder ms a precise order 
+     mutate(ms_name = fct_relevel(as.factor(ms_name), 
+            "Italy",
+            "France",
+            "Germany",
+            "Spain",
+            "Greece",
+            "Sweden",
+            "Slovenia")) %>% 
+    # Nest a tibble by factor ...[SAME AS group_by(to_short) %>% nest()]
+    dplyr::group_nest (to_short) %>% # ---> ms | data
+    # add a column with plotS (generated by each pair category:data)
+    mutate(plot = map2( # apply a function to pairs...
+        .x = data, #... my 2 cols
+        .y = to_short,
+        # my actual plot
+        .f = ~{
+            ggplot(.x, # the nested data 
+                   aes(x = ms_name, y = fin_values,  fill = fin_vars )) +
+                geom_col(position = "dodge") +
+                #geom_hline(yintercept = 500000000) +
+                # custom color
+                scale_fill_manual(values = theme_col) +
+                # change format for x axis (--> bold (Italy))
+                # scale_x_discrete(labels=c("Italy"=expression(bold(underline(Italy))), parse=TRUE)
+                #                  )+
+                # change format for y axis (--> euro)
+                scale_y_continuous(labels= scales::label_number(scale = 1/1000000,
+                                                                prefix = "€",
+                                                                suffix = " mln",
+                                                                big.mark = ".",
+                                                                decimal.mark = ",")) +
+                # -------- theme 
+                labs(x = NULL,
+                     y = NULL,
+                     title = paste("ERDF 2014-2020 by theme: ", .y) ,
+                     subtitle = "Data updated on 28 October, 2022",
+                     caption = "Source: ESIF 2014-2020 Finance Implementation Details (99js-gm52)") +
+                guides(fill=guide_legend(title="Financial Values")) + 
+                theme_cohesion()
+            
+        }
+    )) 
+
+
+ESIF_nest_theme %>% 
+    walk2(# trigger side effect from pairs  --> ggsave 
+        .x = .$plot,
+        .y = .$to_short,
+        .f = ~ ggsave(paste0(path_fig, "/Theme_", .y, ".tiff"), plot = .x)
+    ) 
+
+
+saveRDS(ESIF_nest_theme, file = paste0("./data/out_data/ESIF_nest_theme.Rds"))
+
+# ESIF_nest_theme %>%
+#     walk2(# trigger side effect from pairs  --> print
+#         .x = .$plot,
+#         .y = .$to_short,
+#         .f = ~ print(.x)
+#     )
+```
+
+
+```{r think,  include=FALSE,  eval=FALSE}
+# cose' che ottengo con group_nest? -->  data frames inside your data frame
+class(ESIF_nest_theme)
+ESIF_nest_theme$to_short[[1]]
+one <- ESIF_nest_theme$data[[1]]
+
+# cosa posso farci? --> iterate over each category’s nested data frame.
+#in the map call, we need to use ESIF_nest_theme$data as .x 
+library(data.table)
+N_countrypertheme <- map(.x = ESIF_nest_theme$data,
+                    .f = ~uniqueN(.x$ms))
+
+# adding it to the tibble of tibbles
+nest_test <- ESIF_nest_theme %>%  
+    mutate(N_countrypertheme = map(
+        .x = ESIF_nest_theme$data,
+        .f = ~uniqueN(.x$ms))) %>% 
+    # to see the N_countrypertheme as number not as list call
+    unnest(N_countrypertheme)
+```
+
+## --- THEME shiny /plotly 
+
+```{r eval=FALSE}
+# library(shiny)
+# library(plotly)
+
+# I would need YAML runtime: shiny
+ui_t <- shinyUI(
+    fluidPage(
+        selectInput("selectPlot", "Select THEME:", c(
+            "Competitiveness of SMEs",
+            "Sustainable & Quality Employment",
+            "Educational & Vocational Training",
+            "Social Inclusion",
+            
+            "Research & Innovation",
+            "Network Infrastructures in Transport and Energy",
+            
+            "Low-Carbon Economy",
+            "Environment Protection & Resource Efficiency",
+            "Climate Change Adaptation & Risk Prevention",
+            "Fostering crisis repair and resilience",
+            
+            "Information & Communication Technologies",
+            "Technical Assistance",
+            "Efficient Public Administration"), 
+                    selected = "Planned | Eligible | Committed funds"),
+        plotlyOutput("plot")
+    )
+)
+
+ # data.table::uniqueN(ESIF_nest_theme$to_short )
+ # ESIF_nest_theme$to_short[[11]]
+
+server_t <- shinyServer(function(input,output,session){   
+
+    data <- eventReactive(input$selectPlot,{
+        switch(input$selectPlot,
+               "Climate Change Adaptation & Risk Prevention" = ESIF_nest_theme$plot[[1]],#gg1,
+               "Competitiveness of SMEs" = ESIF_nest_theme$plot[[2]],#gg1,
+               "Educational & Vocational Training" = ESIF_nest_theme$plot[[3]],#gg1,
+               "Efficient Public Administration" = ESIF_nest_theme$plot[[4]],#gg1,
+               "Environment Protection & Resource Efficiency" = ESIF_nest_theme$plot[[5]],#gg1,
+               "Fostering crisis repair and resilience" = ESIF_nest_theme$plot[[6]],#gg1,
+               "Information & Communication Technologies" = ESIF_nest_theme$plot[[7]],#gg1,
+               "Low-Carbon Economy" = ESIF_nest_theme$plot[[8]],#gg1,
+               "Network Infrastructures in Transport and Energy" = ESIF_nest_theme$plot[[9]],#gg1,
+               "Research & Innovation" = ESIF_nest_theme$plot[[10]],#gg1,
+               "Social Inclusion" = ESIF_nest_theme$plot[[11]],#gg1,
+               "Sustainable & Quality Employment" = ESIF_nest_theme$plot[[12]],#gg1,
+               "Technical Assistance" = ESIF_nest_theme$plot[[13]],#gg1,
+               )
+    })
+
+    output$plot <- renderPlotly({
+        data()
+    })
+})
+
+# Run the application 
+shinyApp(ui = ui_t, server = server_t)
+```
+### >>> NEXT

@@ -1,0 +1,226 @@
+---
+title: "Exploratory Analysis ERDF 2014-2020 cycle spending"
+author: "Luisa M. Mimmi"
+date: "Prepared: `r format(Sys.time(), '%B %e, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    theme: flatly
+runtime: shiny
+bibliography: ['Plan2Imp.bib']
+biblio-style: "apalike"
+link-citations: true
+##se non citi niente nel testo devi mettere questo
+#nocite: |
+#  @*
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo    = FALSE, 
+  message = FALSE, 
+  warning = FALSE
+)
+
+# data load
+ESIF_nest_theme <- readRDS(  file = paste0("./data/out_data/ESIF_nest_theme.Rds"))
+ESIF_nest_country <- readRDS(  file = paste0("./data/out_data/ESIF_nest_country.Rds"))
+```
+
+# ERDF spending in Italy
+
+This is a quick exploration of some EU structural funds aimed at verifying how much we have been able to disburse (given amounts planned and deemed eligible) for the 2014-2020 funding cycle.\
+Specifically data are taken from the [**ESIF 2014-2020 Finance Implementation Details (99js-gm52)**](https://dev.socrata.com/foundry/cohesiondata.ec.europa.eu/99js-gm52) dataset, then I drill down to programs under the **ERDF (European Regional Development Fund)**.
+
+The most important financial variables observed in euro (over time) are: <!-- see  https://dev.socrata.com/foundry/cohesiondata.ec.europa.eu/99js-gm52 -->
+
+-   **`total_amount`** = Total decided amount (EU + National allocation), also referred to as *"Total Cost"*
+-   **`total_eligible_cost`** = Total amount (EU + National) allocated to the projects (operations) selected, also referred to as *"total eligible cost"* reported by the national and regional programmes to the Commission.
+-   **`total_eligible_expenditure`** = Total expenditure eligible for reimbursement, as reported by the beneficiary projects to the programmes. Also referred to as *"total eligible expenditure"*, it is reported by the national and regional programmes to the Commission.
+
+Other qualifying variables are:
+
+-   **`cci`** = *"Unique identifier"* of each operational programme.
+-   **`to_short`** = Short name for the *"thematic objective"*. For example: "Research and Innovation" stands for "Strengthening research, technological development and innovation.
+-   **`priority`** = Priority Axis: the investment pillars in the programme. Unfortunately, since there is no harmonised numbering or naming of Priority Axes, this variable is useless for comparison.
+-   **`category_of_region`** = The three main categories of region are: *"less developed"*, *"transition"*, and *"more developed"*.
+
+## ERDF: expenditure in Italy by theme & individual project
+
+Below is a collapsible table[^1] that shows the spending status for individual programs implemented in Italy ***---*** the Id of Programs can be used to learn more information about them at this web [link](https://ec.europa.eu/regional_policy/en/atlas/programmes/), inserting the ***cci*** code in the "Keyword" search box.
+
+[^1]: Made following [this example](https://glin.github.io/reactable/articles/building-twitter-followers.html)
+
+::: {style="color: gray"}
+ℹ️ (*Click on the arrow to drill down to programs by theme)*
+:::
+
+```{r table1, echo=FALSE, warning=FALSE ,fig.cap= "ERDF by theme category INTERACTIVE"}
+ 
+library(reactable)
+t_react2 <- readRDS(file = "fig/t_react2.Rds") 
+t_react2 
+```
+
+<!-- https://ec.europa.eu/regional_policy/en/faq/about_open_data/#13 -->
+
+# ERDF spending comparison by country & theme 
+
+## ERDF: percent amount spent by theme
+
+::: {style="color: gray"}
+ℹ️ _(Use the drop-down menu to select *theme)*_
+:::
+
+```{r plot1 , fig.cap="Plot 1", fig.topcaption=TRUE}
+# knitr::include_graphics(here::here("fig", "ERDF_eligVspent_reg_time_facet.png"))
+# 
+library(shiny)
+library(plotly)
+
+ESIF_nest_theme <- readRDS(  file = paste0("./data/out_data/ESIF_nest_theme.Rds"))
+
+ui_t <- shinyUI(
+    fluidPage(
+        selectInput("selectPlot", "Select THEME:", c(
+            "Competitiveness of SMEs",
+            "Sustainable & Quality Employment",
+            "Educational & Vocational Training",
+            "Social Inclusion",
+            
+            "Research & Innovation",
+            "Network Infrastructures in Transport and Energy",
+            
+            "Low-Carbon Economy",
+            "Environment Protection & Resource Efficiency",
+            "Climate Change Adaptation & Risk Prevention",
+            
+            "Information & Communication Technologies",
+            "Technical Assistance",
+            "Efficient Public Administration"), 
+                    selected = "Planned | Eligible | Committed funds"),
+        # Output and render functions for using plotly within Shiny applications and interactive Rmd documents.
+        plotly::plotlyOutput("plot",
+                             #width = "100%",
+                             height = "300px"#, # for height, using "auto" or "100%" generally will not work bc of HTML/CSS.
+                             #inline = FALSE,
+                             #reportTheme = TRUE
+                             )
+    )
+)
+
+ # data.table::uniqueN(ESIF_nest_theme$to_short )
+ # ESIF_nest_theme$to_short[[1]]
+
+server_t <- shinyServer(function(input,output,session){   
+
+    data <- eventReactive(input$selectPlot,{
+        switch(input$selectPlot,
+               "Climate Change Adaptation & Risk Prevention" = ESIF_nest_theme$plot[[1]],#gg1,
+               "Competitiveness of SMEs" = ESIF_nest_theme$plot[[2]],#gg1,
+               "Educational & Vocational Training" = ESIF_nest_theme$plot[[3]],#gg1,
+               "Efficient Public Administration" = ESIF_nest_theme$plot[[4]],#gg1,
+               "Environment Protection & Resource Efficiency" = ESIF_nest_theme$plot[[5]],#gg1,
+               "Information & Communication Technologies" = ESIF_nest_theme$plot[[6]],#gg1,
+               "Low-Carbon Economy" = ESIF_nest_theme$plot[[7]],#gg1,
+               "Network Infrastructures in Transport and Energy" = ESIF_nest_theme$plot[[8]],#gg1,
+               "Research & Innovation" = ESIF_nest_theme$plot[[9]],#gg1,
+               "Social Inclusion" = ESIF_nest_theme$plot[[10]],#gg1,
+               "Sustainable & Quality Employment" = ESIF_nest_theme$plot[[11]],#gg1,
+               "Technical Assistance" = ESIF_nest_theme$plot[[12]],#gg1,
+               )
+    })
+
+    output$plot <- renderPlotly({
+        data() 
+    })
+})
+
+# Run the application 
+shinyApp(ui = ui_t, server = server_t)
+
+```
+
+<!-- ```{r plot2 ,fig.cap="Plot 2", fig.topcaption=TRUE} -->
+
+<!-- knitr::include_graphics(here::here("fig", "ERDF_eligVspent_theme_time_facet.png")) -->
+
+<!-- ``` -->
+
+> In some cases, the amount decided (finances implemented) exceeds the total amount programmed for specific Member States. Why? This happens generally in the last years of a programme period. They do this in order to avoid the risks 1) that some of the decided / selected projects fail to materialise or 2) that irregularities occur over the programme life time which lead to the withdrawal of support to those projects.
+
+<!-- https://ec.europa.eu/regional_policy/en/faq/about_open_data/#13 -->
+
+## ERDF: percent amount spent by country
+
+::: {style="color: gray"}
+ℹ️ _(Use the drop-down menu to select *country)*_
+:::
+ 
+```{r plot2 , fig.cap="Plot 2", fig.topcaption=TRUE}
+# knitr::include_graphics(here::here("fig", "ERDF_eligVspent_reg_time_facet.png"))
+# 
+library(shiny)
+library(plotly)
+
+ui_c <- shinyUI(
+    fluidPage(
+        selectInput("selectPlot", "Select Member State:", c("Italy",
+                                                    "France",
+                                                    "Germany",
+                                                    "Spain",
+                                                    "Greece",
+                                                    "Sweden",
+                                                    "Slovenia"), 
+                    selected = "Planned | Eligible | Committed funds"),
+        plotlyOutput("plot",
+                     #width = "100%",
+                     height = "300px"#, # for height, using "auto" or "100%" generally will not work bc of HTML/CSS.
+                     #inline = FALSE,
+                     #reportTheme = TRUE
+        )
+    )
+)
+
+#print(ESIF_nest_country$ms_name)
+
+server_c <- shinyServer(function(input,output,session){   
+
+    data <- eventReactive(input$selectPlot,{
+        switch(input$selectPlot,
+               "France"   = ESIF_nest_country$plot[[1]],#gg1,
+               "Germany"  = ESIF_nest_country$plot[[2]],#gg2,
+               "Greece"   = ESIF_nest_country$plot[[3]],#gg3,
+               "Italy"    = ESIF_nest_country$plot[[4]],#gg4,
+               "Slovenia" = ESIF_nest_country$plot[[5]],#gg5,
+               "Spain"    = ESIF_nest_country$plot[[6]],#gg6,
+               "Sweden"   = ESIF_nest_country$plot[[7]] #gg7
+               )
+    })
+
+    output$plot <- renderPlotly({
+        data()
+    })
+})
+
+# Run the application 
+shinyApp(ui = ui_c, server = server_c)
+```
+
+# Key Messages
+
+In Italy, the % of spent funds (over eligible ones) ranges from \~30% to \~67%, with huge variability across thematic objectives and individual programs.
+
+Looking at a few other EU member states for comparison, it is clear, at present, **Italy is closely aligned with comparable EU members** in terms of the amount of eligible ERDF funds that have been actually spent. 
+
+In fact, the only thematic objectives in which Italy is lagging (compered to other EU countries) are: **"Fostering crisis repair and resilience"** (~ 3% spent over eligible funds) and **"Multiple Thematic Objectives (ERDF/CF/ESF)"** (~ 33% spent over eligible funds). The first thematic objective also stands out because of the amount of investment planned (over 2 billion)... so it definitely deserve further analysis.
+
+> ❗Actually, the data are up to date (October 2022) and last reference date shown is 30/06/2022 but I am not sure whether programs are now closed or still been implemented... (deadlines were extended due to Covid).
+
+# Reference
+
+The code written (in R) to retrieve and clean the data can be found at this [Github repo](https://github.com/Lulliter/plan2implem)
+
+Using some tools for the first time, I followed this tutorials/examples: <!-- -   `Quarto` (see presentation [here](https://rstudio-conf-2022.github.io/get-started-quarto/materials/07-plots-tables.html#/block-layout-arbitrary-content)) --> - R package `reactable` (see examples [here](https://glin.github.io/reactable/articles/building-twitter-followers.html#finishing-touches))

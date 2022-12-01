@@ -38,26 +38,33 @@ Here, I'll focus on the **European regional development fund (ERDF)** first ...
 The analysis can be reproduced running in sequence the R scripts `01_*.R`:`04_*.R` which will generate the charts `gg_*.png` and clean data files `dat*.Rds`. 
 Then `05_Analysis.Rmd` should compile the article as html and PDF. (`tree -C -L 1`)
 
-```.
+``` .
     ├── 01_ingest-clean.R
     ├── 02_explore-data.R
     ├── 03_Analysis.Rmd
+    ├── 03_Analysis.html
+    ├── 03_Analysis.md
+    ├── 03_Analysis_Q.html
+    ├── 03_Analysis_Q.qmd
     ├── Plan2Imp.bib
     ├── R/*
     ├── README.html
     ├── README.md
     ├── ___render-deploy.sh
     ├── data/*
+    ├── fig/*
     ├── plan2implem.Rproj
-    └── reference/*
+    └── reference
 ```
  
 ## Data Sources
 <!--  + [EU cohesion structural funds](https://cohesiondata.ec.europa.eu/stories/s/Information-maps-tracking-progress-in-investment-a/wjiv-jyr9m) -->
 + [EU cohesion overview 2014-2020](https://cohesiondata.ec.europa.eu/cohesion_overview/14-20#)
-+ [Opencoesione](https://opencoesione.gov.it/it/nature/infrastrutture/)
++ [User guide for these Cohesion data](https://cohesiondata.ec.europa.eu/stories/s/Cohesion-Open-Data-User-Guide/cf5w-2b26)
++ [Data Catalogue Cohesion data](https://cohesiondata.ec.europa.eu/browse?limitTo=datasets)
++ [ITA Opencoesione](https://opencoesione.gov.it/it/nature/infrastrutture/)
 
-+ **DEF** has a section on "Monitooraggio dei Fondi Strtutturali" ----> go check!!
++ **DEF** has a section on "Monitoraggio dei Fondi Strtutturali" ----> go check!!
 che viene monitorato da [IGRUE-Ispettorato Generale per i Rapporti finanziari con l'Unione Europea](http://www.rgs.mef.gov.it/VERSIONE-I/e_government/amministrazioni_pubbliche/igrue/index.html)
 
 ## Reference

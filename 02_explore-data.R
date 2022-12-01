@@ -23,9 +23,6 @@ for (package in packages) {
     }
 }
 
-# turn off scientific notaton
-options(scipen = 999) #  to turn back on options(scipen = 0)
-
 # Functions -----------------------------------------------------------------------------------
 # source(here::here("R", "helpers.R"))
 #source(here::here("R", "ggplot-theme.R"))
@@ -621,9 +618,9 @@ saveRDS(t_react2 ,file = "fig/t_react2.Rds" )
 
 
 # --- --- --- --- --- ------ --- ------ --- ------ --- ------ --- ------ --- --- #
-# 3) "ESIF_2014_20_plan2imp" [3kkx-ekfq] planned vs implemented ---------------------------------------
-# INFO HERE https://dev.socrata.com/foundry/cohesiondata.ec.europa.eu/3kkx-ekfq
-#
+# 3) "ESIF_2014_20_plan2imp" [3kkx-ekfq] categorisation ERDF-ESF-CF planned vs implemented ---------------------------------------
+# DAta HERE https://dev.socrata.com/foundry/cohesiondata.ec.europa.eu/3kkx-ekfq
+# INFO HERE https://cohesiondata.ec.europa.eu/2014-2020-Categorisation/ESIF-2014-2020-categorisation-ERDF-ESF-CF-planned-/3kkx-ekfq
 # ERDF-ESF-CF categorization by fund and comparison of PLANNED AMOUNTS TO IMPLEMENTED INVESTMENTS.
 # STRUCTURE OF DATASET: The planned data is provided in tables one for each priority axis (investment pillar) of each programme. The categorisation systems is defined in Implementing Regulation 215/2014 with 8 dimensions in total
 #In analysing the content of the dataset THE DIFFERENT DIMENSIONS SHOULD BE ANALYSED SEPARATELY AS OTHERWISE DOUBLE COUNTING OF FINANCIAL AMOUNTS WILL OCCUR.

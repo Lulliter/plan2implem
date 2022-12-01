@@ -8,7 +8,7 @@ cd ./
 git status
 
 # Add changes to git Index.
-git add README.html
+git add data/out_data/*
 
 git add fig/* # specific
 git add -A # ALL
